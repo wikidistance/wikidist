@@ -1,20 +1,25 @@
 package crawler
 
 import (
+	"io"
 	"net/http"
 	s "strings"
 
 	"golang.org/x/net/html"
 )
 
-func GetPageLinks(url string) (pageLinks []string) {
+func GetPageLinks(url string) []string {
 	resp, err := http.Get(url)
 	if err != nil {
 		panic(err)
 	}
 	defer resp.Body.Close()
 
-	z := html.NewTokenizer(resp.Body)
+	return extractLinks(resp.Body)
+}
+
+func extractLinks(pageBody io.ReadCloser) (links []string) {
+	z := html.NewTokenizer(pageBody)
 
 	for {
 		tt := z.Next()
@@ -23,12 +28,11 @@ func GetPageLinks(url string) (pageLinks []string) {
 			return
 		case tt == html.StartTagToken:
 			t := z.Token()
-
 			if t.Data == "a" {
 				for _, a := range t.Attr {
 					if a.Key == "href" {
 						if isLinkToArticle(a.Val) {
-							pageLinks = append(pageLinks, a.Val)
+							links = append(links, a.Val)
 						}
 						break
 					}
