@@ -2,11 +2,12 @@ package main
 
 import (
 	"net/http"
-	"wikidist/pkg/api"
 	"log"
+
+	"github.com/wikidistance/wikidist/pkg/api"
 )
 
 func main(){
-    http.HandleFunc("/", api.TestHandler)
+    http.HandleFunc("/", api.DefaultHandler)
     log.Fatal(http.ListenAndServe(":8080", nil))
 }
