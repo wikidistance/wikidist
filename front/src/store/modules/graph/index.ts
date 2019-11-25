@@ -3,8 +3,8 @@ import { Module } from 'vuex';
 import { RootState } from '@/store/types';
 
 const state: GraphState = {
-  pages: [],
-  links: [],
+  pages: new Map(),
+  links: new Map(),
 };
 
 export const graph: Module<GraphState, RootState> = {
