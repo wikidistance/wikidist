@@ -11,10 +11,12 @@ type Result struct {
 }
 
 func main() {
+	nWorkers := 3
+
 	queue := make(chan string, 10000)
 	defer close(queue)
 
-	results := make(chan Result, 3)
+	results := make(chan Result, nWorkers)
 
 	seen := make(map[string]bool)
 	graph := make(map[string][]string)
@@ -23,7 +25,7 @@ func main() {
 	queue <- startUrl
 	seen[startUrl] = true
 
-	for i := 1; i <= 3; i++ {
+	for i := 1; i <= nWorkers; i++ {
 		go worker(queue, results)
 	}
 
