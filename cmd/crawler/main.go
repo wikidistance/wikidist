@@ -40,7 +40,7 @@ func main() {
 
 	nCrawled := 0
 
-	for ; nCrawled <= 10000 && nQueued > nCrawled; nCrawled++ {
+	for ; nQueued > nCrawled; nCrawled++ {
 		result := <-results
 		fmt.Println("got result", result.url, len(result.links))
 
