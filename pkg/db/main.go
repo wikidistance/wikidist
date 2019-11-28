@@ -1,11 +1,13 @@
 package db
 
+// Article contains information about a MediaWiki article
 type Article struct {
 	URL            string
 	Title          string
 	LinkedArticles []string
 }
 
+// DB is the interface to interact with a database
 type DB interface {
 	// AddVisited writes the visited article and its edges with other articles.
 	// It should be called after each article has been visited.
