@@ -38,9 +38,7 @@ func main() {
 		go worker(queue, results)
 	}
 
-	nCrawled := 0
-
-	for ; nQueued > nCrawled; nCrawled++ {
+	for nCrawled := 0; nQueued > nCrawled; nCrawled++ {
 		result := <-results
 		fmt.Println("got result", result.url, len(result.links))
 
