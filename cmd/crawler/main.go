@@ -2,7 +2,14 @@ package main
 
 import (
 	"fmt"
+	"sync"
+
 	"github.com/wikidistance/wikidist/pkg/crawler"
+)
+
+var (
+	toSee = make(map[string]struct{})
+	l     = sync.Mutex{}
 )
 
 type Result struct {
@@ -35,8 +42,14 @@ func main() {
 
 		graph[result.url] = result.links
 		for _, link := range result.links {
-			if _, already_seen := seen[link]; !already_seen {
-				queue <- link
+			if _, ok := seen[link]; !ok {
+				select {
+				case queue <- link:
+				default:
+					l.Lock()
+					toSee[link] = struct{}{}
+					l.Unlock()
+				}
 				seen[link] = struct{}{}
 			}
 		}
@@ -44,7 +57,23 @@ func main() {
 }
 
 func worker(queue <-chan string, results chan<- Result) {
-	for url := range queue {
+	for {
+		var url string
+		select {
+		case url = <-queue:
+		default:
+			l.Lock()
+			for link := range toSee {
+				url = link
+				break
+			}
+			delete(toSee, url)
+			l.Unlock()
+		}
+		if url == "" {
+			continue
+		}
+
 		fmt.Println("getting", url)
 		links := crawler.GetPageLinks(url)
 		results <- Result{url, links}
