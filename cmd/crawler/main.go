@@ -18,7 +18,7 @@ type Result struct {
 }
 
 func main() {
-	nWorkers := 3
+	nWorkers := 10
 
 	queue := make(chan string, 10000)
 	defer close(queue)
@@ -28,7 +28,9 @@ func main() {
 	seen := make(map[string]struct{})
 	graph := make(map[string][]string)
 
-	startUrl := "/wiki/Amauroclopius"
+	nQueued := 1
+
+	startUrl := "/wiki/Osasco"
 	queue <- startUrl
 	seen[startUrl] = struct{}{}
 
@@ -36,13 +38,14 @@ func main() {
 		go worker(queue, results)
 	}
 
-	for nCrawled := 0; nCrawled <= 100; nCrawled++ {
+	for nCrawled := 0; nQueued > nCrawled; nCrawled++ {
 		result := <-results
 		fmt.Println("got result", result.url, len(result.links))
 
 		graph[result.url] = result.links
 		for _, link := range result.links {
 			if _, ok := seen[link]; !ok {
+				nQueued++
 				select {
 				case queue <- link:
 				default:
@@ -53,6 +56,8 @@ func main() {
 				seen[link] = struct{}{}
 			}
 		}
+
+		fmt.Println(nQueued, "queued,", nCrawled, "crawled")
 	}
 }
 
