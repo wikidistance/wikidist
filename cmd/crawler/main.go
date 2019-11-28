@@ -18,12 +18,12 @@ func main() {
 
 	results := make(chan Result, nWorkers)
 
-	seen := make(map[string]bool)
+	seen := make(map[string]struct{})
 	graph := make(map[string][]string)
 
 	startUrl := "/wiki/Amauroclopius"
 	queue <- startUrl
-	seen[startUrl] = true
+	seen[startUrl] = struct{}{}
 
 	for i := 1; i <= nWorkers; i++ {
 		go worker(queue, results)
@@ -37,7 +37,7 @@ func main() {
 		for _, link := range result.links {
 			if _, already_seen := seen[link]; !already_seen {
 				queue <- link
-				seen[link] = true
+				seen[link] = struct{}{}
 			}
 		}
 	}
