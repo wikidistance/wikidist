@@ -9,13 +9,14 @@ import (
 )
 
 func GetPageLinks(url string) []string {
-	resp, err := http.Get(url)
+	prefix := "https://en.wikipedia.org"
+	resp, err := http.Get(prefix + url)
 	if err != nil {
 		panic(err)
 	}
 	defer resp.Body.Close()
 
-	return extractLinks(resp.Body)
+	return removeDuplicates(extractLinks(resp.Body))
 }
 
 func extractLinks(pageBody io.ReadCloser) (links []string) {
@@ -44,4 +45,17 @@ func extractLinks(pageBody io.ReadCloser) (links []string) {
 
 func isLinkToArticle(link string) bool {
 	return s.HasPrefix(link, "/wiki/") && !s.Contains(link, ":")
+}
+
+func removeDuplicates(links []string) (dedupedLinks []string) {
+	hashTable := make(map[string]bool)
+	for _, link := range links {
+		hashTable[link] = true
+	}
+
+	for link := range hashTable {
+		dedupedLinks = append(dedupedLinks, link)
+	}
+
+	return
 }
