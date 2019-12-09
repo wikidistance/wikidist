@@ -5,10 +5,11 @@ import (
 	"net/http"
 	s "strings"
 
+	"github.com/wikidistance/wikidist/pkg/db"
 	"golang.org/x/net/html"
 )
 
-func CrawlArticle(url string) Article {
+func CrawlArticle(url string) db.Article {
 	prefix := "https://en.wikipedia.org"
 	resp, err := http.Get(prefix + url)
 	if err != nil {
@@ -17,7 +18,7 @@ func CrawlArticle(url string) Article {
 	defer resp.Body.Close()
 
 	title, links := parsePage(resp.Body)
-	return Article{url, title, removeDuplicates(links)}
+	return db.Article{url, title, removeDuplicates(links)}
 }
 
 func parsePage(pageBody io.ReadCloser) (title string, links []string) {

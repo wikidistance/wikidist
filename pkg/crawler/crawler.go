@@ -2,25 +2,20 @@ package crawler
 
 import (
 	"fmt"
+	"github.com/wikidistance/wikidist/pkg/db"
 	"sync"
 )
-
-type Article struct {
-	url   string
-	title string
-	links []string
-}
 
 type Crawler struct {
 	nWorkers int
 	startUrl string
 
-	results chan Article
+	results chan db.Article
 	toSee   map[string]struct{}
 	l       sync.Mutex
 
 	seen  map[string]struct{}
-	graph map[string]Article
+	graph map[string]db.Article
 }
 
 func NewCrawler(nWorkers int, startUrl string) *Crawler {
@@ -29,10 +24,10 @@ func NewCrawler(nWorkers int, startUrl string) *Crawler {
 	c.nWorkers = nWorkers
 	c.startUrl = startUrl
 
-	c.results = make(chan Article, nWorkers)
+	c.results = make(chan db.Article, nWorkers)
 	c.seen = make(map[string]struct{})
 	c.toSee = make(map[string]struct{})
-	c.graph = make(map[string]Article)
+	c.graph = make(map[string]db.Article)
 
 	return &c
 }
@@ -48,10 +43,10 @@ func (c *Crawler) Run() {
 
 	for nCrawled := 0; nQueued > nCrawled; nCrawled++ {
 		result := <-c.results
-		fmt.Println("got result", result.title, len(result.links))
+		fmt.Println("got result", result.Title, len(result.LinkedArticles))
 
-		c.graph[result.url] = result
-		for _, link := range result.links {
+		c.graph[result.URL] = result
+		for _, link := range result.LinkedArticles {
 			if _, ok := c.seen[link]; !ok {
 				nQueued++
 
