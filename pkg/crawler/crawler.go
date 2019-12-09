@@ -20,7 +20,7 @@ type Crawler struct {
 	l       sync.Mutex
 
 	seen  map[string]struct{}
-	graph map[string][]string
+	graph map[string]Article
 }
 
 func NewCrawler(nWorkers int, startUrl string) *Crawler {
@@ -32,7 +32,7 @@ func NewCrawler(nWorkers int, startUrl string) *Crawler {
 	c.results = make(chan Article, nWorkers)
 	c.seen = make(map[string]struct{})
 	c.toSee = make(map[string]struct{})
-	c.graph = make(map[string][]string)
+	c.graph = make(map[string]Article)
 
 	return &c
 }
@@ -50,7 +50,7 @@ func (c *Crawler) Run() {
 		result := <-c.results
 		fmt.Println("got result", result.title, len(result.links))
 
-		c.graph[result.url] = result.links
+		c.graph[result.url] = result
 		for _, link := range result.links {
 			if _, ok := c.seen[link]; !ok {
 				nQueued++
