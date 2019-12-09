@@ -8,7 +8,7 @@ import (
 	"golang.org/x/net/html"
 )
 
-func GetPageLinks(url string) []string {
+func GetPageLinks(url string) Article {
 	prefix := "https://en.wikipedia.org"
 	resp, err := http.Get(prefix + url)
 	if err != nil {
@@ -16,14 +16,21 @@ func GetPageLinks(url string) []string {
 	}
 	defer resp.Body.Close()
 
-	return removeDuplicates(extractLinks(resp.Body))
+	title, links := parsePage(resp.Body)
+	return Article{url, title, removeDuplicates(links)}
 }
 
-func extractLinks(pageBody io.ReadCloser) (links []string) {
+func parsePage(pageBody io.ReadCloser) (title string, links []string) {
 	z := html.NewTokenizer(pageBody)
+
+	titleIsNext := false
 
 	for {
 		tt := z.Next()
+		if titleIsNext {
+			titleIsNext = false
+			title = string(z.Raw())
+		}
 		switch {
 		case tt == html.ErrorToken:
 			return
@@ -36,6 +43,13 @@ func extractLinks(pageBody io.ReadCloser) (links []string) {
 							links = append(links, a.Val)
 						}
 						break
+					}
+				}
+			}
+			if t.Data == "h1" {
+				for _, a := range t.Attr {
+					if a.Key == "id" && a.Val == "firstHeading" {
+						titleIsNext = true
 					}
 				}
 			}

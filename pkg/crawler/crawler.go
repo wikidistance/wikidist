@@ -5,8 +5,9 @@ import (
 	"sync"
 )
 
-type Result struct {
+type Article struct {
 	url   string
+	title string
 	links []string
 }
 
@@ -14,7 +15,7 @@ type Crawler struct {
 	nWorkers int
 	startUrl string
 
-	results chan Result
+	results chan Article
 	toSee   map[string]struct{}
 	l       sync.Mutex
 
@@ -28,7 +29,7 @@ func NewCrawler(nWorkers int, startUrl string) *Crawler {
 	c.nWorkers = nWorkers
 	c.startUrl = startUrl
 
-	c.results = make(chan Result, nWorkers)
+	c.results = make(chan Article, nWorkers)
 	c.seen = make(map[string]struct{})
 	c.toSee = make(map[string]struct{})
 	c.graph = make(map[string][]string)
@@ -47,7 +48,7 @@ func (c *Crawler) Run() {
 
 	for nCrawled := 0; nQueued > nCrawled; nCrawled++ {
 		result := <-c.results
-		fmt.Println("got result", result.url, len(result.links))
+		fmt.Println("got result", result.title, len(result.links))
 
 		c.graph[result.url] = result.links
 		for _, link := range result.links {
@@ -82,7 +83,6 @@ func (c *Crawler) addWorker() {
 		}
 
 		fmt.Println("getting", url)
-		links := GetPageLinks(url)
-		c.results <- Result{url, links}
+		c.results <- GetPageLinks(url)
 	}
 }
