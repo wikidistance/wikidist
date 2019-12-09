@@ -1,9 +1,27 @@
 package main
 
-import "github.com/wikidistance/wikidist/pkg/crawler"
+import (
+	"fmt"
+
+	"github.com/wikidistance/wikidist/pkg/db"
+)
 
 func main() {
-	c := crawler.NewCrawler(10, "/wiki/Main_Page")
+	//c := crawler.NewCrawler(10, "/wiki/Main_Page")
 
-	c.Run()
+	client, _ := db.NewDGraph()
+
+	err := client.AddVisited(&db.Article{
+		Title: "titlea",
+		URL:   "urla",
+		LinkedArticles: []db.Article{
+			{
+				URL: "urlb",
+			},
+		},
+	})
+
+	fmt.Println(err)
+
+	//c.Run()
 }
