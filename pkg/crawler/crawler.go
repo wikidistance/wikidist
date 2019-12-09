@@ -83,6 +83,6 @@ func (c *Crawler) addWorker() {
 		}
 
 		fmt.Println("getting", url)
-		c.results <- GetPageLinks(url)
+		c.results <- CrawlArticle(url)
 	}
 }

@@ -8,7 +8,7 @@ import (
 	"golang.org/x/net/html"
 )
 
-func GetPageLinks(url string) Article {
+func CrawlArticle(url string) Article {
 	prefix := "https://en.wikipedia.org"
 	resp, err := http.Get(prefix + url)
 	if err != nil {
