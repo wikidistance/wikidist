@@ -3,19 +3,19 @@ import { MutationTree } from 'vuex';
 
 export const mutations: MutationTree<GraphState> = {
   addPage(state, page: Page) {
-    if (!state.pages.has(page.id)) {
-      state.pages.set(page.id, page);
+    if (state.pages.find(p => p.id === page.id) === undefined) {
+      state.pages.push(page);
     }
   },
   setPages(state, pages: Page[]) {
-    state.pages = new Map(pages.map(p => [p.id, p]));
+    state.pages = pages;
   },
   addLink(state, link: Link) {
-    if (!state.links.has(link.id)) {
-      state.links.set(link.id, link);
+    if (state.links.find(l => l.id === link.id) === undefined) {
+      state.links.push(link);
     }
   },
   setLinks(state, links: Link[]) {
-    state.links = new Map(links.map(l => [l.id, l]));
+    state.links = links;
   },
 };

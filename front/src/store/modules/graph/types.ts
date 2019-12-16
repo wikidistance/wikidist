@@ -1,6 +1,6 @@
 export interface GraphState {
-  pages: Map<number, Page>;
-  links: Map<number, Link>;
+  pages: Page[];
+  links: Link[];
 }
 
 export interface Page {
