@@ -10,7 +10,7 @@ import (
 )
 
 func CrawlArticle(url string) db.Article {
-	prefix := "https://en.wikipedia.org"
+	prefix := "https://co.wikipedia.org"
 	resp, err := http.Get(prefix + url)
 	if err != nil {
 		panic(err)
@@ -18,7 +18,22 @@ func CrawlArticle(url string) db.Article {
 	defer resp.Body.Close()
 
 	title, links := parsePage(resp.Body)
-	return db.Article{url, title, removeDuplicates(links)}
+
+	dedupedLinks := removeDuplicates(links)
+
+	// build neighbour Articles
+	linkedArticles := make([]db.Article, 0, len(dedupedLinks))
+	for _, link := range dedupedLinks {
+		neighbour := db.Article{URL: link}
+		linkedArticles = append(linkedArticles, neighbour)
+
+	}
+
+	return db.Article{
+		URL:            url,
+		Title:          title,
+		LinkedArticles: linkedArticles,
+	}
 }
 
 func parsePage(pageBody io.ReadCloser) (title string, links []string) {
@@ -59,7 +74,7 @@ func parsePage(pageBody io.ReadCloser) (title string, links []string) {
 }
 
 func isLinkToArticle(link string) bool {
-	return s.HasPrefix(link, "/wiki/") && !s.Contains(link, ":")
+	return s.HasPrefix(link, "/wiki/") && !s.Contains(link, ":") && link != "/wiki/Main_Page" && link != "/wiki/Pagina_maestra"
 }
 
 func removeDuplicates(links []string) (dedupedLinks []string) {
