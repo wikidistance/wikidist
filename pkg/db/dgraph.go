@@ -164,7 +164,7 @@ func (dg *DGraph) getOrCreate(ctx context.Context, articles []Article) ([]string
 			return nil, err
 		}
 
-		uids = append(uids, resp.Uids["_:article"])
+		uids = append(uids, resp.Uids["article"])
 	}
 	err = txn.Commit(ctx)
 	if err != nil {

@@ -23,5 +23,19 @@ func main() {
 
 	fmt.Println(err)
 
+	err = client.AddVisited(&db.Article{
+		Title: "titleb",
+		URL:   "urlb",
+		LinkedArticles: []db.Article{
+			{
+				URL: "urlc",
+			},
+			{
+				URL: "urld",
+			},
+		},
+	})
+	fmt.Println(err)
+
 	//c.Run()
 }
