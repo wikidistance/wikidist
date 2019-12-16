@@ -2,9 +2,11 @@ package db
 
 // Article contains information about a MediaWiki article
 type Article struct {
-	URL            string
-	Title          string
-	LinkedArticles []string
+	UID            string    `json:"uid,omitempty"`
+	URL            string    `json:"url,omitempty"`
+	Title          string    `json:"title,omitempty"`
+	LinkedArticles []Article `json:"linked_articles,omitempty"`
+	DType          []string
 }
 
 // DB is the interface to interact with a database

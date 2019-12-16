@@ -5,25 +5,48 @@ import (
 	"net/http"
 	s "strings"
 
+	"github.com/wikidistance/wikidist/pkg/db"
 	"golang.org/x/net/html"
 )
 
-func GetPageLinks(url string) []string {
-	prefix := "https://en.wikipedia.org"
+func CrawlArticle(url string) db.Article {
+	prefix := "https://co.wikipedia.org"
 	resp, err := http.Get(prefix + url)
 	if err != nil {
 		panic(err)
 	}
 	defer resp.Body.Close()
 
-	return removeDuplicates(extractLinks(resp.Body))
+	title, links := parsePage(resp.Body)
+
+	dedupedLinks := removeDuplicates(links)
+
+	// build neighbour Articles
+	linkedArticles := make([]db.Article, 0, len(dedupedLinks))
+	for _, link := range dedupedLinks {
+		neighbour := db.Article{URL: link}
+		linkedArticles = append(linkedArticles, neighbour)
+
+	}
+
+	return db.Article{
+		URL:            url,
+		Title:          title,
+		LinkedArticles: linkedArticles,
+	}
 }
 
-func extractLinks(pageBody io.ReadCloser) (links []string) {
+func parsePage(pageBody io.ReadCloser) (title string, links []string) {
 	z := html.NewTokenizer(pageBody)
+
+	titleIsNext := false
 
 	for {
 		tt := z.Next()
+		if titleIsNext {
+			titleIsNext = false
+			title = string(z.Raw())
+		}
 		switch {
 		case tt == html.ErrorToken:
 			return
@@ -39,12 +62,19 @@ func extractLinks(pageBody io.ReadCloser) (links []string) {
 					}
 				}
 			}
+			if t.Data == "h1" {
+				for _, a := range t.Attr {
+					if a.Key == "id" && a.Val == "firstHeading" {
+						titleIsNext = true
+					}
+				}
+			}
 		}
 	}
 }
 
 func isLinkToArticle(link string) bool {
-	return s.HasPrefix(link, "/wiki/") && !s.Contains(link, ":")
+	return s.HasPrefix(link, "/wiki/") && !s.Contains(link, ":") && link != "/wiki/Main_Page" && link != "/wiki/Pagina_maestra"
 }
 
 func removeDuplicates(links []string) (dedupedLinks []string) {

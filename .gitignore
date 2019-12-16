@@ -13,3 +13,6 @@
 
 # Ansible retry files
 *.retry
+
+# Go binaries
+cmd/crawler/crawler

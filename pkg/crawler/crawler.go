@@ -2,44 +2,44 @@ package crawler
 
 import (
 	"fmt"
+	"github.com/wikidistance/wikidist/pkg/db"
 	"sync"
 )
 
-type Result struct {
-	url   string
-	links []string
-}
-
 type Crawler struct {
 	nWorkers int
-	startUrl string
+	startURL string
 
-	results chan Result
-	toSee   map[string]struct{}
-	l       sync.Mutex
+	results  chan db.Article
+	database db.DB
+
+	toSee map[string]struct{}
+	l     sync.Mutex
 
 	seen  map[string]struct{}
-	graph map[string][]string
+	graph map[string]db.Article
 }
 
-func NewCrawler(nWorkers int, startUrl string) *Crawler {
+func NewCrawler(nWorkers int, startURL string, database db.DB) *Crawler {
 	c := Crawler{}
 
-	c.nWorkers = nWorkers
-	c.startUrl = startUrl
+	c.database = database
 
-	c.results = make(chan Result, nWorkers)
+	c.nWorkers = nWorkers
+	c.startURL = startURL
+
+	c.results = make(chan db.Article, nWorkers)
 	c.seen = make(map[string]struct{})
 	c.toSee = make(map[string]struct{})
-	c.graph = make(map[string][]string)
+	c.graph = make(map[string]db.Article)
 
 	return &c
 }
 
 func (c *Crawler) Run() {
 	nQueued := 1
-	c.toSee[c.startUrl] = struct{}{}
-	c.seen[c.startUrl] = struct{}{}
+	c.toSee[c.startURL] = struct{}{}
+	c.seen[c.startURL] = struct{}{}
 
 	for i := 1; i <= c.nWorkers; i++ {
 		go c.addWorker()
@@ -47,18 +47,22 @@ func (c *Crawler) Run() {
 
 	for nCrawled := 0; nQueued > nCrawled; nCrawled++ {
 		result := <-c.results
-		fmt.Println("got result", result.url, len(result.links))
+		fmt.Println("got result", result.Title, len(result.LinkedArticles))
+		resultCopy := result
 
-		c.graph[result.url] = result.links
-		for _, link := range result.links {
-			if _, ok := c.seen[link]; !ok {
+		c.database.AddVisited(&resultCopy)
+
+		c.graph[result.URL] = result
+		for _, neighbour := range result.LinkedArticles {
+			fmt.Println(neighbour.URL)
+			if _, ok := c.seen[neighbour.URL]; !ok {
 				nQueued++
 
 				c.l.Lock()
-				c.toSee[link] = struct{}{}
+				c.toSee[neighbour.URL] = struct{}{}
 				c.l.Unlock()
 
-				c.seen[link] = struct{}{}
+				c.seen[neighbour.URL] = struct{}{}
 			}
 		}
 
@@ -82,7 +86,6 @@ func (c *Crawler) addWorker() {
 		}
 
 		fmt.Println("getting", url)
-		links := GetPageLinks(url)
-		c.results <- Result{url, links}
+		c.results <- CrawlArticle(url)
 	}
 }
