@@ -8,21 +8,25 @@ import (
 
 type Crawler struct {
 	nWorkers int
-	startUrl string
+	startURL string
 
-	results chan db.Article
-	toSee   map[string]struct{}
-	l       sync.Mutex
+	results  chan db.Article
+	database db.DB
+
+	toSee map[string]struct{}
+	l     sync.Mutex
 
 	seen  map[string]struct{}
 	graph map[string]db.Article
 }
 
-func NewCrawler(nWorkers int, startUrl string) *Crawler {
+func NewCrawler(nWorkers int, startURL string, database db.DB) *Crawler {
 	c := Crawler{}
 
+	c.database = database
+
 	c.nWorkers = nWorkers
-	c.startUrl = startUrl
+	c.startURL = startURL
 
 	c.results = make(chan db.Article, nWorkers)
 	c.seen = make(map[string]struct{})
@@ -34,8 +38,8 @@ func NewCrawler(nWorkers int, startUrl string) *Crawler {
 
 func (c *Crawler) Run() {
 	nQueued := 1
-	c.toSee[c.startUrl] = struct{}{}
-	c.seen[c.startUrl] = struct{}{}
+	c.toSee[c.startURL] = struct{}{}
+	c.seen[c.startURL] = struct{}{}
 
 	for i := 1; i <= c.nWorkers; i++ {
 		go c.addWorker()
@@ -44,17 +48,21 @@ func (c *Crawler) Run() {
 	for nCrawled := 0; nQueued > nCrawled; nCrawled++ {
 		result := <-c.results
 		fmt.Println("got result", result.Title, len(result.LinkedArticles))
+		resultCopy := result
+
+		c.database.AddVisited(&resultCopy)
 
 		c.graph[result.URL] = result
-		for _, link := range result.LinkedArticles {
-			if _, ok := c.seen[link]; !ok {
+		for _, neighbour := range result.LinkedArticles {
+			fmt.Println(neighbour.URL)
+			if _, ok := c.seen[neighbour.URL]; !ok {
 				nQueued++
 
 				c.l.Lock()
-				c.toSee[link] = struct{}{}
+				c.toSee[neighbour.URL] = struct{}{}
 				c.l.Unlock()
 
-				c.seen[link] = struct{}{}
+				c.seen[neighbour.URL] = struct{}{}
 			}
 		}
 
