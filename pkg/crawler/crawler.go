@@ -8,7 +8,7 @@ import (
 
 type Crawler struct {
 	nWorkers int
-	startUrl string
+	startURL string
 
 	results  chan db.Article
 	database db.DB
@@ -20,13 +20,13 @@ type Crawler struct {
 	graph map[string]db.Article
 }
 
-func NewCrawler(nWorkers int, startUrl string, database db.DB) *Crawler {
+func NewCrawler(nWorkers int, startURL string, database db.DB) *Crawler {
 	c := Crawler{}
 
 	c.database = database
 
 	c.nWorkers = nWorkers
-	c.startUrl = startUrl
+	c.startURL = startURL
 
 	c.results = make(chan db.Article, nWorkers)
 	c.seen = make(map[string]struct{})
@@ -38,8 +38,8 @@ func NewCrawler(nWorkers int, startUrl string, database db.DB) *Crawler {
 
 func (c *Crawler) Run() {
 	nQueued := 1
-	c.toSee[c.startUrl] = struct{}{}
-	c.seen[c.startUrl] = struct{}{}
+	c.toSee[c.startURL] = struct{}{}
+	c.seen[c.startURL] = struct{}{}
 
 	for i := 1; i <= c.nWorkers; i++ {
 		go c.addWorker()

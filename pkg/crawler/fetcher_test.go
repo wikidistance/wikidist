@@ -19,9 +19,9 @@ func TestFetcher(t *testing.T) {
 		</body>
 	</html>`))
 	title, links := parsePage(fakeBody)
-	expected_links := []string{"/wiki/Article_about_something_else"}
-	expected_title := "Title of the page"
+	expectedLinks := []string{"/wiki/Article_about_something_else"}
+	expectedTitle := "Title of the page"
 
-	assert.Equal(t, links, expected_links, "Only the second link should be extracted")
-	assert.Equal(t, title, expected_title, "Page title should be extracted")
+	assert.Equal(t, links, expectedLinks, "Only the second link should be extracted")
+	assert.Equal(t, title, expectedTitle, "Page title should be extracted")
 }
