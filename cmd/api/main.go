@@ -9,5 +9,7 @@ import (
 
 func main() {
 	http.HandleFunc("/", api.DefaultHandler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	http.HandleFunc("/search", api.PageSearchHandler)
+
+	log.Fatal(http.ListenAndServe(":8081", nil))
 }
