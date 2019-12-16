@@ -11,4 +11,8 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# Ansible retry files
+*.retry
+
+# Go binaries
 cmd/crawler/crawler
