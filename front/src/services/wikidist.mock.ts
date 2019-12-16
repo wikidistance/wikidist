@@ -21,6 +21,10 @@ const pages: Page[] = [
     id: 4,
     name: 'Germany',
   },
+  {
+    id: 5,
+    name: 'Maastricht',
+  },
 ];
 
 const links: Link[] = [
@@ -43,6 +47,11 @@ const links: Link[] = [
     id: 3,
     from: 0,
     to: 4,
+  },
+  {
+    id: 4,
+    from: 1,
+    to: 5,
   },
 ];
 
