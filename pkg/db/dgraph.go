@@ -151,7 +151,6 @@ func (dg *DGraph) getOrCreate(ctx context.Context, articles []Article) ([]string
 
 		article.UID = "_:article"
 		article.DType = []string{"Article"}
-		fmt.Printf("inserting %+v\n", article)
 		pb, err := json.Marshal(article)
 		if err != nil {
 			return nil, err
