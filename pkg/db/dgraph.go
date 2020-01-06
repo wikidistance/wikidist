@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"time"
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
@@ -32,10 +34,12 @@ func NewDGraph() (*DGraph, error) {
 			title: string
 			url: string
 			linked_articles: [Article]
+			last_crawled: dateTime
 		}
 
 		title: string @index(term) @lang .
 		url: string @index(term) @lang .
+		last_crawled: dateTime @index(hour) .
 
 		`,
 	}
@@ -77,6 +81,8 @@ func (dg *DGraph) AddVisited(article *Article) error {
 		article.UID = resp[0].UID
 	}
 
+	article.LastCrawled = time.Now().Format("2006-01-02T15:04:05Z")
+
 	// update the article with all the new links
 	pb, err := json.Marshal(article)
 	if err != nil {
@@ -115,6 +121,7 @@ func (dg *DGraph) getOrCreate(ctx context.Context, articles []Article) ([]string
 
 		article.UID = "_:article"
 		article.DType = []string{"Article"}
+		article.LastCrawled = time.Date(2000, time.January, 0, 0, 0, 0, 0, time.UTC).Format("2006-01-02T15:04:05Z")
 		pb, err := json.Marshal(article)
 		if err != nil {
 			return nil, err
@@ -181,7 +188,38 @@ func (dg *DGraph) query(ctx context.Context, txn *dgo.Txn, q string, vars map[st
 	return r, nil
 }
 
-func (dg *DGraph) NextToVisit() (string, error) {
-	// TODO
-	return "", nil
+func (dg *DGraph) NextsToVisit(count int) ([]string, error) {
+	ctx := context.TODO()
+
+	txn := dg.client.NewTxn()
+
+	var query = fmt.Sprintf(`
+	{
+		nodes(func: has(last_crawled), orderasc:last_crawled, first: %d) {
+			uid
+			url
+		}
+	}
+	`, count)
+
+	resp, err := txn.Query(ctx, query)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	var decode struct {
+		Nodes []Article
+	}
+
+	if err := json.Unmarshal(resp.GetJson(), &decode); err != nil {
+		fmt.Println(err)
+	}
+
+	urls := make([]string, 0)
+
+	for _, node := range decode.Nodes {
+		urls = append(urls, node.URL)
+	}
+
+	return urls, nil
 }
