@@ -30,11 +30,14 @@ func NewCrawler(nWorkers int, startURL string, database db.DB) *Crawler {
 }
 
 func (c *Crawler) Run() {
+
+	seen := make(map[string]struct{})
 	for i := 1; i <= c.nWorkers; i++ {
 		go c.addWorker()
 	}
 
 	nCrawled := 0
+	c.queue <- c.startURL
 
 	for {
 		// fill queue
@@ -45,6 +48,10 @@ func (c *Crawler) Run() {
 			}
 
 			for _, url := range urls {
+				if _, ok := seen[url]; ok {
+					continue
+				}
+				seen[url] = struct{}{}
 				fmt.Println("queuing", url)
 				c.queue <- url
 			}
@@ -52,14 +59,17 @@ func (c *Crawler) Run() {
 		}
 
 		// save results
-		result := <-c.results
-		fmt.Println("got result", result.Title, len(result.LinkedArticles))
-		resultCopy := result
+		if len(c.results) > 0 {
+			result := <-c.results
 
-		c.database.AddVisited(&resultCopy)
-		nCrawled++
+			fmt.Println("got result", result.Title, len(result.LinkedArticles))
+			resultCopy := result
 
-		fmt.Println(nCrawled, "crawled")
+			c.database.AddVisited(&resultCopy)
+			nCrawled++
+
+			fmt.Println(nCrawled, "crawled")
+		}
 	}
 }
 
