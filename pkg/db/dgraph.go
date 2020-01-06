@@ -195,7 +195,7 @@ func (dg *DGraph) NextToVisit() (string, error) {
 
 	const query = `
 	{
-		find_node(func: has(last_crawled), orderasc:last_crawled, first: 5) {
+		nodes(func: has(last_crawled), orderasc:last_crawled, first: 5) {
 			uid
 			url
 		}
@@ -208,12 +208,12 @@ func (dg *DGraph) NextToVisit() (string, error) {
 	}
 
 	var decode struct {
-		All []Article
+		Nodes []Article
 	}
 
 	if err := json.Unmarshal(resp.GetJson(), &decode); err != nil {
 		fmt.Println(err)
 	}
 
-	return decode.All[0].URL, nil
+	return decode.Nodes[0].URL, nil
 }

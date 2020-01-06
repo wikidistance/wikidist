@@ -2,22 +2,17 @@ package crawler
 
 import (
 	"fmt"
+
 	"github.com/wikidistance/wikidist/pkg/db"
-	"sync"
 )
 
 type Crawler struct {
 	nWorkers int
 	startURL string
 
+	queue    chan string
 	results  chan db.Article
 	database db.DB
-
-	toSee map[string]struct{}
-	l     sync.Mutex
-
-	seen  map[string]struct{}
-	graph map[string]db.Article
 }
 
 func NewCrawler(nWorkers int, startURL string, database db.DB) *Crawler {
@@ -28,58 +23,46 @@ func NewCrawler(nWorkers int, startURL string, database db.DB) *Crawler {
 	c.nWorkers = nWorkers
 	c.startURL = startURL
 
+	c.queue = make(chan string, nWorkers*2)
 	c.results = make(chan db.Article, nWorkers)
-	c.seen = make(map[string]struct{})
-	c.toSee = make(map[string]struct{})
-	c.graph = make(map[string]db.Article)
 
 	return &c
 }
 
 func (c *Crawler) Run() {
-	nQueued := 1
-	c.toSee[c.startURL] = struct{}{}
-	c.seen[c.startURL] = struct{}{}
-
 	for i := 1; i <= c.nWorkers; i++ {
 		go c.addWorker()
 	}
 
-	for nCrawled := 0; nQueued > nCrawled; nCrawled++ {
+	nCrawled := 0
+
+	for {
+		// fill queue
+		if len(c.queue) <= c.nWorkers {
+			url, err := c.database.NextToVisit()
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Println("queuing", url)
+			c.queue <- url
+		}
+
+		// save results
 		result := <-c.results
 		fmt.Println("got result", result.Title, len(result.LinkedArticles))
 		resultCopy := result
 
 		c.database.AddVisited(&resultCopy)
+		nCrawled++
 
-		c.graph[result.URL] = result
-		for _, neighbour := range result.LinkedArticles {
-			fmt.Println(neighbour.URL)
-			if _, ok := c.seen[neighbour.URL]; !ok {
-				nQueued++
-
-				c.l.Lock()
-				c.toSee[neighbour.URL] = struct{}{}
-				c.l.Unlock()
-
-				c.seen[neighbour.URL] = struct{}{}
-			}
-		}
-
-		fmt.Println(nQueued, "queued,", nCrawled, "crawled")
+		fmt.Println(nCrawled, "crawled")
 	}
 }
 
 func (c *Crawler) addWorker() {
 	for {
-		var url string
-		c.l.Lock()
-		for link := range c.toSee {
-			url = link
-			break
-		}
-		delete(c.toSee, url)
-		c.l.Unlock()
+		url := <-c.queue
 
 		if url == "" {
 			continue
