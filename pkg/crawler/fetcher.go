@@ -2,6 +2,7 @@ package crawler
 
 import (
 	"io"
+	"log"
 	"net/http"
 	s "strings"
 
@@ -63,7 +64,7 @@ func parsePage(client *http.Client, pageBody io.ReadCloser) (title string, links
 							// to ensure we have the actual article URL
 							res, err := client.Head(link)
 							if err != nil {
-								panic(err)
+								log.Printf("failed to fetch %s: %s", link, err)
 							}
 							links = append(links, res.Request.URL.String())
 						}
