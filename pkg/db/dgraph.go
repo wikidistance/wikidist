@@ -232,3 +232,29 @@ func (dg *DGraph) NextsToVisit(count int) ([]string, error) {
 	log.Printf("NextToVisit: finished in %v\n", time.Since(start))
 	return urls, nil
 }
+
+func (dg *DGraph) ShortestPath(from string, to string) ([]Article, error) {
+	q := fmt.Sprintf(`
+	{
+		path as shortest(from: %s, to: %s) {
+			linked_articles
+		   }
+		path(func: uid(path)) {
+			uid,
+			title,
+			url
+		}
+	}
+
+	`, from, to)
+	resp, err := dg.client.NewTxn().Query(context.Background(), q)
+
+	if err != nil {
+		return nil, err
+	}
+	result := make(map[string][]Article, 0)
+	println("resp", resp.String())
+	json.Unmarshal(resp.GetJson(), &result)
+	return result["path"], nil
+
+}
