@@ -25,7 +25,7 @@ func NewCrawler(nWorkers int, startURL string, database db.DB) *Crawler {
 	c.startURL = startURL
 
 	c.queue = make(chan string, 10*nWorkers)
-	c.results = make(chan db.Article, nWorkers)
+	c.results = make(chan db.Article, 100*nWorkers)
 
 	return &c
 }
@@ -68,6 +68,7 @@ func (c *Crawler) Run() {
 			resultCopy := result
 
 			c.database.AddVisited(&resultCopy)
+			fmt.Println("registered", result.Title)
 			nCrawled++
 
 			fmt.Println(nCrawled, "crawled")
