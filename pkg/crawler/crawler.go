@@ -53,6 +53,7 @@ func (c *Crawler) Run() {
 					continue
 				}
 				seen[url] = struct{}{}
+				fmt.Println("queuing", url)
 				c.queue <- url
 			}
 		}
