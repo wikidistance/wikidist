@@ -10,7 +10,7 @@ import (
 )
 
 func CrawlArticle(url string) db.Article {
-	prefix := "https://co.wikipedia.org"
+	prefix := "https://fr.wikipedia.org"
 	resp, err := http.Get(prefix + url)
 	if err != nil {
 		panic(err)
