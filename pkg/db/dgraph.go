@@ -188,19 +188,19 @@ func (dg *DGraph) query(ctx context.Context, txn *dgo.Txn, q string, vars map[st
 	return r, nil
 }
 
-func (dg *DGraph) NextToVisit() (string, error) {
+func (dg *DGraph) NextsToVisit(count int) ([]string, error) {
 	ctx := context.TODO()
 
 	txn := dg.client.NewTxn()
 
-	const query = `
+	var query = fmt.Sprintf(`
 	{
-		nodes(func: has(last_crawled), orderasc:last_crawled, first: 5) {
+		nodes(func: has(last_crawled), orderasc:last_crawled, first: %d) {
 			uid
 			url
 		}
 	}
-	`
+	`, count)
 
 	resp, err := txn.Query(ctx, query)
 	if err != nil {
@@ -215,5 +215,11 @@ func (dg *DGraph) NextToVisit() (string, error) {
 		fmt.Println(err)
 	}
 
-	return decode.Nodes[0].URL, nil
+	urls := make([]string, 0)
+
+	for _, node := range decode.Nodes {
+		urls = append(urls, node.URL)
+	}
+
+	return urls, nil
 }

@@ -23,7 +23,7 @@ func NewCrawler(nWorkers int, startURL string, database db.DB) *Crawler {
 	c.nWorkers = nWorkers
 	c.startURL = startURL
 
-	c.queue = make(chan string, nWorkers*2)
+	c.queue = make(chan string, nWorkers*3)
 	c.results = make(chan db.Article, nWorkers)
 
 	return &c
@@ -39,13 +39,16 @@ func (c *Crawler) Run() {
 	for {
 		// fill queue
 		if len(c.queue) <= c.nWorkers {
-			url, err := c.database.NextToVisit()
+			urls, err := c.database.NextsToVisit(2 * c.nWorkers)
 			if err != nil {
 				panic(err)
 			}
 
-			fmt.Println("queuing", url)
-			c.queue <- url
+			for _, url := range urls {
+				fmt.Println("queuing", url)
+				c.queue <- url
+			}
+
 		}
 
 		// save results

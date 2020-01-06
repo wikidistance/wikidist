@@ -16,8 +16,8 @@ type DB interface {
 	// It should be called after each article has been visited.
 	AddVisited(*Article) error
 
-	// NextToVisit returns a URL at random from the list of URLs that have yet.
+	// NextsToVisit returns a list of URLs at random from the list of URLs that have yet
 	// to be visited. If there is nothing to visit, this function blocks
 	// indefinitely until there is one.
-	NextToVisit() (string, error)
+	NextsToVisit(count int) ([]string, error)
 }
