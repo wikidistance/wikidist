@@ -13,6 +13,7 @@ type Crawler struct {
 
 	queue    chan string
 	results  chan db.Article
+	seen     map[string]struct{}
 	database db.DB
 }
 
@@ -26,13 +27,13 @@ func NewCrawler(nWorkers int, startURL string, database db.DB) *Crawler {
 
 	c.queue = make(chan string, 10*nWorkers)
 	c.results = make(chan db.Article, 2*nWorkers)
+	c.seen = make(map[string]struct{})
 
 	return &c
 }
 
 func (c *Crawler) Run() {
 
-	seen := make(map[string]struct{})
 	for i := 1; i <= c.nWorkers; i++ {
 		go c.addWorker()
 	}
@@ -44,25 +45,26 @@ func (c *Crawler) Run() {
 	c.queue <- c.startURL
 
 	for {
-		// fill queue
-		if len(c.queue) <= c.nWorkers {
-			urls, err := c.database.NextsToVisit(9 * c.nWorkers)
-			if err != nil {
-				panic(err)
-			}
+		c.refillQueue()
+		time.Sleep(10 * time.Millisecond)
+	}
+}
 
-			for _, url := range urls {
-				if _, ok := seen[url]; ok {
-					continue
-				}
-				seen[url] = struct{}{}
-				fmt.Println("queuing", url)
-				c.queue <- url
-			}
+func (c *Crawler) refillQueue() {
+	if len(c.queue) <= c.nWorkers {
+		urls, err := c.database.NextsToVisit(9 * c.nWorkers)
+		if err != nil {
+			panic(err)
 		}
 
-		time.Sleep(time.Millisecond)
-
+		for _, url := range urls {
+			if _, ok := c.seen[url]; ok {
+				continue
+			}
+			c.seen[url] = struct{}{}
+			fmt.Println("queuing", url)
+			c.queue <- url
+		}
 	}
 }
 
