@@ -17,13 +17,6 @@ type DGraph struct {
 	client *dgo.Dgraph
 }
 
-type WebPage struct {
-	Uid            string    `json:"uid"`
-	Url            string    `json:"url"`
-	Title          string    `json:"title"`
-	LinkedArticles []WebPage `json:"linked_articles"`
-}
-
 // NewDGraph returns a new *DGraph
 func NewDGraph() (*DGraph, error) {
 	// Dial a gRPC connection. The address to dial to can be configured when
@@ -284,7 +277,7 @@ func GenerateSearchQuery(depth int) string {
 	`, GenerateSearchQuery(depth-1))
 }
 
-func (dg *DGraph) SearchArticleByTitle(s string, depth int) ([]WebPage, error) {
+func (dg *DGraph) SearchArticleByTitle(s string, depth int) ([]Article, error) {
 	ctx := context.TODO()
 
 	q := fmt.Sprintf(`{
@@ -300,7 +293,7 @@ func (dg *DGraph) SearchArticleByTitle(s string, depth int) ([]WebPage, error) {
 		return nil, err
 	}
 
-	res := make(map[string][]WebPage, 0)
+	res := make(map[string][]Article, 0)
 
 	json.Unmarshal(result.GetJson(), &res)
 

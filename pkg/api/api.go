@@ -43,10 +43,10 @@ func (dg *DGraph) ShortestPathHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
-func PageSearchHandler(w http.ResponseWriter, r *http.Request) {
+func (dg *DGraph) PageSearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	var search Search
-	var res []db.WebPage
+	var res []db.Article
 
 	w.Header().Set("Content-type", "application/json;charset=UTF-8")
 	w.WriteHeader(http.StatusOK)

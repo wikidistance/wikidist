@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-func PageSearch(s string, depth int) []db.WebPage {
+func PageSearch(s string, depth int) []db.Article {
 	dgraph, err := db.NewDGraph()
 
 	if err != nil {
