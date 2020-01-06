@@ -2,6 +2,7 @@ package crawler
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/wikidistance/wikidist/pkg/db"
 )
@@ -52,11 +53,11 @@ func (c *Crawler) Run() {
 					continue
 				}
 				seen[url] = struct{}{}
-				fmt.Println("queuing", url)
 				c.queue <- url
 			}
-
 		}
+
+		time.Sleep(time.Millisecond)
 
 		// save results
 		if len(c.results) > 0 {
