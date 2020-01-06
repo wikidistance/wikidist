@@ -9,17 +9,16 @@ import (
 	"github.com/wikidistance/wikidist/pkg/db"
 )
 
-var dg *db.DGraph
+type DGraph db.DGraph
 
-func init() {
-	dg, _ = db.NewDGraph()
-}
 func DefaultHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello World")
 }
 
-func ShortestPathHandler(w http.ResponseWriter, r *http.Request) {
+func (dg *DGraph) ShortestPathHandler(w http.ResponseWriter, r *http.Request) {
+	dg2 := (*db.DGraph)(dg)
 	from, ok := r.URL.Query()["from"]
+	fmt.Fprintf(w, "from[0] = %s, from = %s", from[0], from)
 	if !ok || len(from[0]) < 1 {
 		fmt.Fprint(w, "Need a from argument")
 		return
@@ -29,7 +28,8 @@ func ShortestPathHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "Need a to argument")
 		return
 	}
-	res, err := dg.ShortestPath(from[0], to[0])
+
+	res, err := dg2.ShortestPath(from[0], to[0])
 	if err != nil {
 		log.Printf("DB error: %s", err)
 	}

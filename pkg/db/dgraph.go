@@ -202,17 +202,10 @@ func (dg *DGraph) ShortestPath(from string, to string) ([]WebPage, error) {
 
 	`, from, to)
 	resp, err := dg.client.NewTxn().Query(context.Background(), q)
-	if err != nil {
-		fmt.Println("Error occured 1")
-		return nil, err
-	}
-	//r := make(map[string][]Article)
-	//err = json.Unmarshal(resp.GetJson(), &r)
-	if err != nil {
-		fmt.Println("Error occured 2")
-		return nil, err
-	}
 
+	if err != nil {
+		return nil, err
+	}
 	result := make(map[string][]WebPage, 0)
 	println("resp", resp.String())
 	json.Unmarshal(resp.GetJson(), &result)
