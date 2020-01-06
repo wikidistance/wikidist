@@ -25,7 +25,7 @@ func NewCrawler(nWorkers int, startURL string, database db.DB) *Crawler {
 	c.startURL = startURL
 
 	c.queue = make(chan string, 10*nWorkers)
-	c.results = make(chan db.Article, 100*nWorkers)
+	c.results = make(chan db.Article, 2*nWorkers)
 
 	return &c
 }
@@ -37,7 +37,10 @@ func (c *Crawler) Run() {
 		go c.addWorker()
 	}
 
-	nCrawled := 0
+	for i := 1; i <= c.nWorkers; i++ {
+		go c.addRegisterer()
+	}
+
 	c.queue <- c.startURL
 
 	for {
@@ -60,19 +63,16 @@ func (c *Crawler) Run() {
 
 		time.Sleep(time.Millisecond)
 
-		// save results
-		if len(c.results) > 0 {
-			result := <-c.results
+	}
+}
 
-			fmt.Println("got result", result.Title, len(result.LinkedArticles))
-			resultCopy := result
+func (c *Crawler) addRegisterer() {
+	for {
+		result := <-c.results
+		resultCopy := result
 
-			c.database.AddVisited(&resultCopy)
-			fmt.Println("registered", result.Title)
-			nCrawled++
-
-			fmt.Println(nCrawled, "crawled")
-		}
+		fmt.Println("registering", result.URL)
+		c.database.AddVisited(&resultCopy)
 	}
 }
 
