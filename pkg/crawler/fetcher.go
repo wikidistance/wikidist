@@ -58,7 +58,14 @@ func parsePage(pageBody io.ReadCloser) (title string, links []string) {
 						if isLinkToArticle(a.Val) {
 							// Handle links to section: /path/to/doc#section
 							link := s.SplitN(a.Val, "#", 2)[0]
-							links = append(links, link)
+
+							// Do a head request and follow redirects
+							// to ensure we have the actual article URL
+							res, err := http.Head(link)
+							if err != nil {
+								panic(err)
+							}
+							links = append(links, res.Request.URL.String())
 						}
 						break
 					}
