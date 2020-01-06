@@ -14,6 +14,7 @@ type DGraph db.DGraph
 
 type Search struct {
 	Search string `json:"search"`
+	Depth  int    `json:"depth"`
 }
 
 func DefaultHandler(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +60,7 @@ func PageSearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	json.Unmarshal(reqBody, &search)
 
-	res = PageSearch(search.Search)
+	res = PageSearch(search.Search, search.Depth)
 
 	json.NewEncoder(w).Encode(res)
 }

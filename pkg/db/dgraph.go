@@ -265,22 +265,34 @@ func (dg *DGraph) ShortestPath(from string, to string) ([]Article, error) {
 	return result["path"], nil
 }
 
-func (dg *DGraph) SearchArticleByTitle(s string) ([]WebPage, error) {
-	ctx := context.TODO()
-
-	q := fmt.Sprintf(`{
-		find_node_by_title(func: match(title, "%s", 5))
-		{
-		  title
-		  url
-		  uid
-		  linked_articles {
+func GenerateSearchQuery(depth int) string {
+	if depth == 0 {
+		return `
 			title
 			url
 			uid
-		  }
+		`
+	}
+
+	return fmt.Sprintf(`
+		title
+		url
+		uid
+		linked_articles {
+			%s
 		}
-	  }`, s)
+	`, GenerateSearchQuery(depth-1))
+}
+
+func (dg *DGraph) SearchArticleByTitle(s string, depth int) ([]WebPage, error) {
+	ctx := context.TODO()
+
+	q := fmt.Sprintf(`{
+		find_node_by_title(func: match(title, "%s", 2))
+		{
+		  %s
+		}
+	  }`, s, GenerateSearchQuery(depth))
 
 	result, err := dg.client.NewTxn().Query(ctx, q)
 
