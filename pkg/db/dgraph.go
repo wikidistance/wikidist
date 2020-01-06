@@ -153,7 +153,7 @@ func (dg *DGraph) getOrCreate(ctx context.Context, articles []Article) ([]string
 
 func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Article, error) {
 	start := time.Now()
-	txn := dg.client.NewReadOnlyTxn()
+	txn := dg.client.NewReadOnlyTxn().BestEffort()
 	defer txn.Discard(ctx)
 
 	resp := make([]Article, 0, len(articles))
