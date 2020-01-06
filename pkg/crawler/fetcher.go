@@ -17,7 +17,7 @@ func CrawlArticle(url string) db.Article {
 	}
 	defer resp.Body.Close()
 
-	title, links := parsePage(resp.Body)
+	title, links := parsePage(http.DefaultClient, resp.Body)
 
 	dedupedLinks := removeDuplicates(links)
 
@@ -36,7 +36,7 @@ func CrawlArticle(url string) db.Article {
 	}
 }
 
-func parsePage(pageBody io.ReadCloser) (title string, links []string) {
+func parsePage(client *http.Client, pageBody io.ReadCloser) (title string, links []string) {
 	z := html.NewTokenizer(pageBody)
 
 	titleIsNext := false
@@ -61,7 +61,7 @@ func parsePage(pageBody io.ReadCloser) (title string, links []string) {
 
 							// Do a head request and follow redirects
 							// to ensure we have the actual article URL
-							res, err := http.Head(link)
+							res, err := client.Head(link)
 							if err != nil {
 								panic(err)
 							}
