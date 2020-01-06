@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"time"
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
@@ -32,10 +34,12 @@ func NewDGraph() (*DGraph, error) {
 			title: string
 			url: string
 			linked_articles: [Article]
+			last_crawled: dateTime
 		}
 
 		title: string @index(term) @lang .
 		url: string @index(term) @lang .
+		last_crawled: dateTime @index(hour) .
 
 		`,
 	}
@@ -77,6 +81,8 @@ func (dg *DGraph) AddVisited(article *Article) error {
 		article.UID = resp[0].UID
 	}
 
+	article.LastCrawled = time.Now().Format("2006-01-02T15:04:05Z")
+
 	// update the article with all the new links
 	pb, err := json.Marshal(article)
 	if err != nil {
@@ -115,6 +121,7 @@ func (dg *DGraph) getOrCreate(ctx context.Context, articles []Article) ([]string
 
 		article.UID = "_:article"
 		article.DType = []string{"Article"}
+		article.LastCrawled = time.Date(2000, time.January, 0, 0, 0, 0, 0, time.UTC).Format("2006-01-02T15:04:05Z")
 		pb, err := json.Marshal(article)
 		if err != nil {
 			return nil, err
@@ -182,6 +189,31 @@ func (dg *DGraph) query(ctx context.Context, txn *dgo.Txn, q string, vars map[st
 }
 
 func (dg *DGraph) NextToVisit() (string, error) {
-	// TODO
-	return "", nil
+	ctx := context.TODO()
+
+	txn := dg.client.NewTxn()
+
+	const query = `
+	{
+		find_node(func: has(last_crawled), orderasc:last_crawled, first: 5) {
+			uid
+			url
+		}
+	}
+	`
+
+	resp, err := txn.Query(ctx, query)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	var decode struct {
+		All []Article
+	}
+
+	if err := json.Unmarshal(resp.GetJson(), &decode); err != nil {
+		fmt.Println(err)
+	}
+
+	return decode.All[0].URL, nil
 }

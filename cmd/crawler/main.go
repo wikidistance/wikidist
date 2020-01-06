@@ -8,6 +8,7 @@ import (
 func main() {
 
 	client, _ := db.NewDGraph()
+	// fmt.Println(client.NextToVisit())
 	c := crawler.NewCrawler(10, "/wiki/Luni", client)
 
 	c.Run()
