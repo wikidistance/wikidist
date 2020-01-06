@@ -2,7 +2,6 @@ package crawler
 
 import (
 	"io"
-	"log"
 	"net/http"
 	s "strings"
 
@@ -18,7 +17,7 @@ func CrawlArticle(url string) db.Article {
 	}
 	defer resp.Body.Close()
 
-	title, links := parsePage(http.DefaultClient, resp.Body)
+	title, links := parsePage(resp.Body)
 
 	dedupedLinks := removeDuplicates(links)
 
@@ -37,7 +36,7 @@ func CrawlArticle(url string) db.Article {
 	}
 }
 
-func parsePage(client *http.Client, pageBody io.ReadCloser) (title string, links []string) {
+func parsePage(pageBody io.ReadCloser) (title string, links []string) {
 	z := html.NewTokenizer(pageBody)
 
 	titleIsNext := false
@@ -57,16 +56,7 @@ func parsePage(client *http.Client, pageBody io.ReadCloser) (title string, links
 				for _, a := range t.Attr {
 					if a.Key == "href" {
 						if isLinkToArticle(a.Val) {
-							// Handle links to section: /path/to/doc#section
-							link := s.SplitN(a.Val, "#", 2)[0]
-
-							// Do a head request and follow redirects
-							// to ensure we have the actual article URL
-							res, err := client.Head(link)
-							if err != nil {
-								log.Printf("failed to fetch %s: %s", link, err)
-							}
-							links = append(links, res.Request.URL.String())
+							links = append(links, a.Val)
 						}
 						break
 					}
