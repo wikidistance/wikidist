@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -9,5 +10,7 @@ import (
 
 func main() {
 	http.HandleFunc("/", api.DefaultHandler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	http.HandleFunc("/shortest", api.ShortestPathHandler)
+	fmt.Println("APi is running on port 8081")
+	log.Fatal(http.ListenAndServe(":8081", nil))
 }

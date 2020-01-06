@@ -15,6 +15,13 @@ type DGraph struct {
 	client *dgo.Dgraph
 }
 
+type WebPage struct {
+	Uid            string    `json:"uid"`
+	Url            string    `json:"url"`
+	Title          string    `json:"title"`
+	LinkedArticles []WebPage `json:"linked_articles"`
+}
+
 // NewDGraph returns a new *DGraph
 func NewDGraph() (*DGraph, error) {
 	// Dial a gRPC connection. The address to dial to can be configured when
@@ -178,4 +185,37 @@ func (dg *DGraph) getOrCreate(ctx context.Context, articles []Article) ([]string
 func (dg *DGraph) NextToVisit() (string, error) {
 	// TODO
 	return "", nil
+}
+
+func (dg *DGraph) ShortestPath(from string, to string) ([]WebPage, error) {
+	q := fmt.Sprintf(`
+	{
+		path as shortest(from: %s, to: %s) {
+			linked_articles
+		   }
+		path(func: uid(path)) {
+			uid,
+			title,
+			url
+		}
+	}
+
+	`, from, to)
+	resp, err := dg.client.NewTxn().Query(context.Background(), q)
+	if err != nil {
+		fmt.Println("Error occured 1")
+		return nil, err
+	}
+	//r := make(map[string][]Article)
+	//err = json.Unmarshal(resp.GetJson(), &r)
+	if err != nil {
+		fmt.Println("Error occured 2")
+		return nil, err
+	}
+
+	result := make(map[string][]WebPage, 0)
+	println("resp", resp.String())
+	json.Unmarshal(resp.GetJson(), &result)
+	return result["path"], nil
+
 }
