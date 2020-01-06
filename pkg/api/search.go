@@ -5,14 +5,14 @@ import (
 	"log"
 )
 
-func PageSearch(s string) []db.WebPage {
+func PageSearch(s string, depth int) []db.WebPage {
 	dgraph, err := db.NewDGraph()
 
 	if err != nil {
 		log.Println(err)
 	}
 
-	res, err := dgraph.SearchArticleByTitle(s)
+	res, err := dgraph.SearchArticleByTitle(s, depth)
 
 	if err != nil {
 		log.Printf("DB error: %s", err)
