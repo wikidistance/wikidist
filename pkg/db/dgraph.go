@@ -15,13 +15,6 @@ type DGraph struct {
 	client *dgo.Dgraph
 }
 
-type WebPage struct {
-	Uid            string    `json:"uid"`
-	Url            string    `json:"url"`
-	Title          string    `json:"title"`
-	LinkedArticles []WebPage `json:"linked_articles"`
-}
-
 // NewDGraph returns a new *DGraph
 func NewDGraph() (*DGraph, error) {
 	// Dial a gRPC connection. The address to dial to can be configured when
@@ -187,7 +180,7 @@ func (dg *DGraph) NextToVisit() (string, error) {
 	return "", nil
 }
 
-func (dg *DGraph) ShortestPath(from string, to string) ([]WebPage, error) {
+func (dg *DGraph) ShortestPath(from string, to string) ([]Article, error) {
 	q := fmt.Sprintf(`
 	{
 		path as shortest(from: %s, to: %s) {
@@ -206,7 +199,7 @@ func (dg *DGraph) ShortestPath(from string, to string) ([]WebPage, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := make(map[string][]WebPage, 0)
+	result := make(map[string][]Article, 0)
 	println("resp", resp.String())
 	json.Unmarshal(resp.GetJson(), &result)
 	return result["path"], nil
