@@ -219,7 +219,9 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 
 	}
 
-	log.Printf("Cache hits: %d, misses: %d, hit ratio: %d%%\n", cacheHits, cacheMisses, 100*cacheHits/(cacheHits+cacheMisses+1))
+	if cacheHits+cacheMisses > 0 {
+		log.Printf("Cache hits: %d, misses: %d, hit ratio: %d%%\n", cacheHits, cacheMisses, 100*cacheHits/(cacheHits+cacheMisses))
+	}
 	log.Printf("queryArticles: queried %d articles in %v\n", len(articles), time.Since(start))
 	return resp, nil
 }
