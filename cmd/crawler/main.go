@@ -14,10 +14,9 @@ func main() {
 	client, _ := db.NewDGraph()
 	c := crawler.NewCrawler(40, "/wiki/Alan_Turing", client)
 
-	c.Run()
-
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 
+	c.Run()
 }
