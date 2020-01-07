@@ -23,6 +23,7 @@ type DGraph struct {
 	cacheLock   sync.Mutex
 	cacheHits   int
 	cacheMisses int
+	offset      int
 }
 
 // NewDGraph returns a new *DGraph
@@ -40,6 +41,7 @@ func NewDGraph() (*DGraph, error) {
 
 	dgraph.uidCache = make(map[string]string)
 	dgraph.cacheLock = sync.Mutex{}
+	dgraph.offset = 0
 
 	op := &api.Operation{
 		Schema: `type Article {
@@ -254,12 +256,15 @@ func (dg *DGraph) NextsToVisit(count int) ([]string, error) {
 
 	var query = fmt.Sprintf(`
 	{
-		nodes(func: eq(last_crawled, "%s"), first: %d) {
+		nodes(func: eq(last_crawled, "%s"), first: %d, offset: %d) {
 			uid
 			url
 		}
 	}
-	`, dummyDate, count)
+	`, dummyDate, count, dg.offset*count)
+
+	dg.offset++
+	dg.offset %= 10
 
 	resp, err := txn.Query(ctx, query)
 	if err != nil {
