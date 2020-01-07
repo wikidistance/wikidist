@@ -25,7 +25,7 @@ func NewCrawler(nWorkers int, startURL string, database db.DB) *Crawler {
 	c.nWorkers = nWorkers
 	c.startURL = startURL
 
-	c.queue = make(chan string, 10*nWorkers)
+	c.queue = make(chan string, 100*nWorkers)
 	c.results = make(chan db.Article, 2*nWorkers)
 	c.seen = make(map[string]struct{})
 
@@ -51,8 +51,8 @@ func (c *Crawler) Run() {
 }
 
 func (c *Crawler) refillQueue() {
-	if len(c.queue) <= c.nWorkers {
-		urls, err := c.database.NextsToVisit(9 * c.nWorkers)
+	if len(c.queue) <= 50*c.nWorkers {
+		urls, err := c.database.NextsToVisit(50 * c.nWorkers)
 		if err != nil {
 			panic(err)
 		}

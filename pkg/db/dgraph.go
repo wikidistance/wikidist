@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/dgraph-io/dgo/v2"
@@ -14,7 +15,11 @@ import (
 
 // DGraph is a connection to a dgraph instance
 type DGraph struct {
-	client *dgo.Dgraph
+	client      *dgo.Dgraph
+	uidCache    map[string]string
+	cacheLock   sync.Mutex
+	cacheHits   int
+	cacheMisses int
 }
 
 // NewDGraph returns a new *DGraph
@@ -30,6 +35,9 @@ func NewDGraph() (*DGraph, error) {
 		client: dgo.NewDgraphClient(api.NewDgraphClient(d)),
 	}
 
+	dgraph.uidCache = make(map[string]string)
+	dgraph.cacheLock = sync.Mutex{}
+
 	op := &api.Operation{
 		Schema: `type Article {
 			title: string
@@ -39,7 +47,7 @@ func NewDGraph() (*DGraph, error) {
 		}
 
 		title: string @index(term) @lang .
-		url: string @index(term) @lang .
+		url: string @index(hash) @lang .
 		last_crawled: dateTime @index(hour) .
 
 		`,
@@ -48,6 +56,22 @@ func NewDGraph() (*DGraph, error) {
 	err = dgraph.client.Alter(context.Background(), op)
 
 	return &dgraph, err
+}
+
+func (dg *DGraph) cacheLookup(url string) (uid string, ok bool) {
+	dg.cacheLock.Lock()
+	defer dg.cacheLock.Unlock()
+
+	uid, ok = dg.uidCache[url]
+
+	return uid, ok
+}
+
+func (dg *DGraph) cacheSave(url string, uid string) {
+	dg.cacheLock.Lock()
+	defer dg.cacheLock.Unlock()
+
+	dg.uidCache[url] = uid
 }
 
 func (dg *DGraph) AddVisited(article *Article) error {
@@ -166,16 +190,38 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 	}
 	`
 
+	cacheHits, cacheMisses := 0, 0
+
 	for _, article := range articles {
+		// check cache
+		if uid, ok := dg.cacheLookup(article.URL); ok {
+			cacheHits++
+			resp = append(resp, Article{
+				UID: uid,
+				URL: article.URL,
+			})
+			continue
+		}
+
+		cacheMisses++
+
 		r, err := dg.query(ctx, txn, q, map[string]string{"$url": article.URL})
 		if err != nil {
 			return nil, err
 		}
 		if len(r["get"]) > 0 {
 			resp = append(resp, r["get"][0])
+
+			// save in cache
+
+			dg.cacheSave(article.URL, r["get"][0].UID)
 		}
+
 	}
 
+	if cacheHits+cacheMisses > 0 {
+		log.Printf("Cache hits: %d, misses: %d, hit ratio: %d%%\n", cacheHits, cacheMisses, 100*cacheHits/(cacheHits+cacheMisses))
+	}
 	log.Printf("queryArticles: queried %d articles in %v\n", len(articles), time.Since(start))
 	return resp, nil
 }
@@ -199,7 +245,7 @@ func (dg *DGraph) NextsToVisit(count int) ([]string, error) {
 	start := time.Now()
 	ctx := context.TODO()
 
-	txn := dg.client.NewTxn()
+	txn := dg.client.NewReadOnlyTxn().BestEffort()
 
 	var query = fmt.Sprintf(`
 	{
