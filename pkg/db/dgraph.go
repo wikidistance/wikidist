@@ -176,7 +176,6 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 	for _, article := range articles {
 		// check cache
 		if uid, ok := dg.uidCache[article.URL]; ok {
-			log.Println("UID Cache hit for", article.URL, ":", uid)
 			dg.cacheHits++
 			resp = append(resp, Article{
 				UID: uid,
@@ -195,7 +194,6 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 			resp = append(resp, r["get"][0])
 
 			// save in cache
-			log.Println("Saving in UID Cache", article.URL, ":", r["get"][0].UID)
 
 			dg.uidCache[article.URL] = r["get"][0].UID
 		}
