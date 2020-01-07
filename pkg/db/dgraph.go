@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/dgraph-io/dgo/v2"
@@ -16,6 +17,7 @@ import (
 type DGraph struct {
 	client      *dgo.Dgraph
 	uidCache    map[string]string
+	cacheLock   sync.Mutex
 	cacheHits   int
 	cacheMisses int
 }
@@ -34,6 +36,7 @@ func NewDGraph() (*DGraph, error) {
 	}
 
 	dgraph.uidCache = make(map[string]string)
+	dgraph.cacheLock = sync.Mutex{}
 	dgraph.cacheHits = 0
 	dgraph.cacheMisses = 0
 
@@ -55,6 +58,22 @@ func NewDGraph() (*DGraph, error) {
 	err = dgraph.client.Alter(context.Background(), op)
 
 	return &dgraph, err
+}
+
+func (dg *DGraph) cacheLookup(url string) (uid string, ok bool) {
+	dg.cacheLock.Lock()
+	defer dg.cacheLock.Unlock()
+
+	uid, ok = dg.uidCache[url]
+
+	return uid, ok
+}
+
+func (dg *DGraph) cacheSave(url string, uid string) {
+	dg.cacheLock.Lock()
+	defer dg.cacheLock.Unlock()
+
+	dg.uidCache[url] = uid
 }
 
 func (dg *DGraph) AddVisited(article *Article) error {
@@ -175,7 +194,7 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 
 	for _, article := range articles {
 		// check cache
-		if uid, ok := dg.uidCache[article.URL]; ok {
+		if uid, ok := dg.cacheLookup(article.URL); ok {
 			dg.cacheHits++
 			resp = append(resp, Article{
 				UID: uid,
@@ -195,7 +214,7 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 
 			// save in cache
 
-			dg.uidCache[article.URL] = r["get"][0].UID
+			dg.cacheSave(article.URL, r["get"][0].UID)
 		}
 
 	}
