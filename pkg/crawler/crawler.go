@@ -1,7 +1,6 @@
 package crawler
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -47,20 +46,24 @@ func (c *Crawler) Run() {
 	c.queue <- c.startURL
 
 	for {
-		c.refillQueue()
+		err := c.refillQueue()
+		if err != nil {
+			log.Println(err)
+		}
 		metrics.Statsd.Gauge("wikidist.crawler.queue.length", float64(len(c.queue)), nil, 1)
 		metrics.Statsd.Gauge("wikidist.crawler.results.length", float64(len(c.results)), nil, 1)
 		time.Sleep(10 * time.Millisecond)
 	}
 }
 
-func (c *Crawler) refillQueue() {
+func (c *Crawler) refillQueue() error {
 	if len(c.queue) <= 50*c.nWorkers {
 		urls, err := c.database.NextsToVisit(100 * c.nWorkers)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
+		var newURLs int64
 		for _, url := range urls {
 			if _, ok := c.seen[url]; ok {
 				continue
@@ -69,9 +72,12 @@ func (c *Crawler) refillQueue() {
 				break
 			}
 			c.seen[url] = struct{}{}
-			fmt.Println("queuing", url)
+			newURLs++
 			c.queue <- url
 		}
+		metrics.Statsd.Count("wikidist.queue.new_urls", newURLs, nil, 1)
+
+		return nil
 	}
 }
 
