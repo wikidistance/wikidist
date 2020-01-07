@@ -77,8 +77,9 @@ func (c *Crawler) refillQueue() error {
 		}
 		metrics.Statsd.Count("wikidist.queue.new_urls", newURLs, nil, 1)
 
-		return nil
 	}
+
+	return nil
 }
 
 func (c *Crawler) addRegisterer() {
