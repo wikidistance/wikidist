@@ -13,6 +13,8 @@ import (
 	"google.golang.org/grpc"
 )
 
+var dummyDate = time.Date(2000, time.January, 0, 0, 0, 0, 0, time.UTC).Format("2006-01-02T15:04:05Z")
+
 // DGraph is a connection to a dgraph instance
 type DGraph struct {
 	client      *dgo.Dgraph
@@ -149,7 +151,7 @@ func (dg *DGraph) getOrCreate(ctx context.Context, articles []Article) ([]string
 
 		article.UID = "_:article"
 		article.DType = []string{"Article"}
-		article.LastCrawled = time.Date(2000, time.January, 0, 0, 0, 0, 0, time.UTC).Format("2006-01-02T15:04:05Z")
+		article.LastCrawled = dummyDate
 		pb, err := json.Marshal(article)
 		if err != nil {
 			return nil, err
@@ -249,12 +251,12 @@ func (dg *DGraph) NextsToVisit(count int) ([]string, error) {
 
 	var query = fmt.Sprintf(`
 	{
-		nodes(func: has(last_crawled), orderasc:last_crawled, first: %d) {
+		nodes(func: eq(last_crawled, "%s"), first: %d) {
 			uid
 			url
 		}
 	}
-	`, count)
+	`, dummyDate, count)
 
 	resp, err := txn.Query(ctx, query)
 	if err != nil {
