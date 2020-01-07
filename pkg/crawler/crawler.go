@@ -57,7 +57,7 @@ func (c *Crawler) Run() {
 }
 
 func (c *Crawler) refillQueue() error {
-	if len(c.queue) <= 50*c.nWorkers {
+	if len(c.queue) <= 80*c.nWorkers {
 		urls, err := c.database.NextsToVisit(100 * c.nWorkers)
 		if err != nil {
 			return err
