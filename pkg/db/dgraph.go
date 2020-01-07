@@ -245,7 +245,7 @@ func (dg *DGraph) NextsToVisit(count int) ([]string, error) {
 	start := time.Now()
 	ctx := context.TODO()
 
-	txn := dg.client.NewTxn()
+	txn := dg.client.NewReadOnlyTxn().BestEffort()
 
 	var query = fmt.Sprintf(`
 	{
