@@ -14,15 +14,16 @@ import (
 
 func CrawlArticle(url string) db.Article {
 	prefix := "https://fr.wikipedia.org"
-	resp, err := http.Get(prefix + url)
 
 	start := time.Now()
+	resp, err := http.Get(prefix + url)
+	elapsed := time.Since(start)
+	log.Println("Fetched page in", elapsed, "milliseconds")
+	metrics.Statsd.Gauge("wikidist.fetcher.time", float64(elapsed.Milliseconds()), nil, 1)
+
 	if err != nil {
 		panic(err)
 	}
-	elapsed := time.Since(start).Milliseconds()
-	log.Println("Fetched page in", elapsed, "milliseconds")
-	metrics.Statsd.Gauge("wikidist.fetcher.time", float64(elapsed), nil, 1)
 
 	defer resp.Body.Close()
 
