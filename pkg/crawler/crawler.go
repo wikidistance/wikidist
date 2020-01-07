@@ -56,7 +56,7 @@ func (c *Crawler) Run() {
 
 func (c *Crawler) refillQueue() {
 	if len(c.queue) <= 50*c.nWorkers {
-		urls, err := c.database.NextsToVisit(50 * c.nWorkers)
+		urls, err := c.database.NextsToVisit(100 * c.nWorkers)
 		if err != nil {
 			panic(err)
 		}
@@ -64,6 +64,9 @@ func (c *Crawler) refillQueue() {
 		for _, url := range urls {
 			if _, ok := c.seen[url]; ok {
 				continue
+			}
+			if len(c.queue) >= cap(c.queue) {
+				break
 			}
 			c.seen[url] = struct{}{}
 			fmt.Println("queuing", url)
