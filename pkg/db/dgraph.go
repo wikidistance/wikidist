@@ -37,8 +37,6 @@ func NewDGraph() (*DGraph, error) {
 
 	dgraph.uidCache = make(map[string]string)
 	dgraph.cacheLock = sync.Mutex{}
-	dgraph.cacheHits = 0
-	dgraph.cacheMisses = 0
 
 	op := &api.Operation{
 		Schema: `type Article {
@@ -192,10 +190,12 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 	}
 	`
 
+	cacheHits, cacheMisses := 0, 0
+
 	for _, article := range articles {
 		// check cache
 		if uid, ok := dg.cacheLookup(article.URL); ok {
-			dg.cacheHits++
+			cacheHits++
 			resp = append(resp, Article{
 				UID: uid,
 				URL: article.URL,
@@ -203,7 +203,7 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 			continue
 		}
 
-		dg.cacheMisses++
+		cacheMisses++
 
 		r, err := dg.query(ctx, txn, q, map[string]string{"$url": article.URL})
 		if err != nil {
@@ -219,7 +219,7 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 
 	}
 
-	log.Printf("Cache hits: %d, misses: %d, hit ratio: %d%%\n", dg.cacheHits, dg.cacheMisses, 100*dg.cacheHits/(dg.cacheHits+dg.cacheMisses+1))
+	log.Printf("Cache hits: %d, misses: %d, hit ratio: %d%%\n", cacheHits, cacheMisses, 100*cacheHits/(cacheHits+cacheMisses+1))
 	log.Printf("queryArticles: queried %d articles in %v\n", len(articles), time.Since(start))
 	return resp, nil
 }
