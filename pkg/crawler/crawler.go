@@ -2,9 +2,11 @@ package crawler
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/wikidistance/wikidist/pkg/db"
+	"github.com/wikidistance/wikidist/pkg/metrics"
 )
 
 type Crawler struct {
@@ -73,8 +75,9 @@ func (c *Crawler) addRegisterer() {
 		result := <-c.results
 		resultCopy := result
 
-		fmt.Println("registering", result.URL)
+		log.Println("registering", result.URL)
 		c.database.AddVisited(&resultCopy)
+		metrics.Statsd.Count("wikidist.articles.registered", 1, nil, 1)
 	}
 }
 
@@ -86,7 +89,8 @@ func (c *Crawler) addWorker() {
 			continue
 		}
 
-		fmt.Println("getting", url)
+		log.Println("getting", url)
 		c.results <- CrawlArticle(url)
+		metrics.Statsd.Count("wikidist.articles.fetched", 1, nil, 1)
 	}
 }
