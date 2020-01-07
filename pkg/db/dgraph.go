@@ -47,7 +47,7 @@ func NewDGraph() (*DGraph, error) {
 		}
 
 		title: string @index(term) @lang .
-		url: string @index(term) @lang .
+		url: string @index(hash) @lang .
 		last_crawled: dateTime @index(hour) .
 
 		`,
