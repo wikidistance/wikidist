@@ -2,9 +2,11 @@ package crawler
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/wikidistance/wikidist/pkg/db"
+	"github.com/wikidistance/wikidist/pkg/metrics"
 )
 
 type Crawler struct {
@@ -46,13 +48,15 @@ func (c *Crawler) Run() {
 
 	for {
 		c.refillQueue()
+		metrics.Statsd.Gauge("wikidist.crawler.queue.length", float64(len(c.queue)), nil, 1)
+		metrics.Statsd.Gauge("wikidist.crawler.results.length", float64(len(c.results)), nil, 1)
 		time.Sleep(10 * time.Millisecond)
 	}
 }
 
 func (c *Crawler) refillQueue() {
 	if len(c.queue) <= 50*c.nWorkers {
-		urls, err := c.database.NextsToVisit(50 * c.nWorkers)
+		urls, err := c.database.NextsToVisit(100 * c.nWorkers)
 		if err != nil {
 			panic(err)
 		}
@@ -60,6 +64,9 @@ func (c *Crawler) refillQueue() {
 		for _, url := range urls {
 			if _, ok := c.seen[url]; ok {
 				continue
+			}
+			if len(c.queue) >= cap(c.queue) {
+				break
 			}
 			c.seen[url] = struct{}{}
 			fmt.Println("queuing", url)
@@ -73,8 +80,9 @@ func (c *Crawler) addRegisterer() {
 		result := <-c.results
 		resultCopy := result
 
-		fmt.Println("registering", result.URL)
+		log.Println("registering", result.URL)
 		c.database.AddVisited(&resultCopy)
+		metrics.Statsd.Count("wikidist.articles.registered", 1, nil, 1)
 	}
 }
 
@@ -86,7 +94,8 @@ func (c *Crawler) addWorker() {
 			continue
 		}
 
-		fmt.Println("getting", url)
+		log.Println("getting", url)
 		c.results <- CrawlArticle(url)
+		metrics.Statsd.Count("wikidist.articles.fetched", 1, nil, 1)
 	}
 }

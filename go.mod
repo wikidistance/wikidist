@@ -3,6 +3,7 @@ module github.com/wikidistance/wikidist
 go 1.13
 
 require (
+	github.com/DataDog/datadog-go v3.3.1+incompatible
 	github.com/dgraph-io/dgo/v2 v2.1.0
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/net v0.0.0-20191126235420-ef20fe5d7933
