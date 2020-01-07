@@ -10,6 +10,7 @@ import (
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
+	"github.com/wikidistance/wikidist/pkg/metrics"
 	"google.golang.org/grpc"
 )
 
@@ -196,6 +197,7 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 		// check cache
 		if uid, ok := dg.cacheLookup(article.URL); ok {
 			cacheHits++
+			metrics.Statsd.Count("wikidist.uidcache.hit", 1, nil, 1)
 			resp = append(resp, Article{
 				UID: uid,
 				URL: article.URL,
@@ -204,6 +206,7 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 		}
 
 		cacheMisses++
+		metrics.Statsd.Count("wikidist.uidcache.miss", 1, nil, 1)
 
 		r, err := dg.query(ctx, txn, q, map[string]string{"$url": article.URL})
 		if err != nil {

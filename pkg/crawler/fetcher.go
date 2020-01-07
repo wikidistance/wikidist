@@ -2,19 +2,28 @@ package crawler
 
 import (
 	"io"
+	"log"
 	"net/http"
 	s "strings"
+	"time"
 
 	"github.com/wikidistance/wikidist/pkg/db"
+	"github.com/wikidistance/wikidist/pkg/metrics"
 	"golang.org/x/net/html"
 )
 
 func CrawlArticle(url string) db.Article {
 	prefix := "https://fr.wikipedia.org"
 	resp, err := http.Get(prefix + url)
+
+	start := time.Now()
 	if err != nil {
 		panic(err)
 	}
+	elapsed := time.Since(start).Milliseconds()
+	log.Println("Fetched page in", elapsed, "milliseconds")
+	metrics.Statsd.Gauge("wikidist.fetcher.time", float64(elapsed), nil, 1)
+
 	defer resp.Body.Close()
 
 	title, links := parsePage(resp.Body)
