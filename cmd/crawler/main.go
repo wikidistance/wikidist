@@ -12,7 +12,7 @@ import (
 func main() {
 
 	client, _ := db.NewDGraph()
-	c := crawler.NewCrawler(10, "/wiki/Alan_Turing", client)
+	c := crawler.NewCrawler(40, "/wiki/Alan_Turing", client)
 
 	c.Run()
 
