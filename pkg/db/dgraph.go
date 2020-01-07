@@ -14,7 +14,10 @@ import (
 
 // DGraph is a connection to a dgraph instance
 type DGraph struct {
-	client *dgo.Dgraph
+	client      *dgo.Dgraph
+	uidCache    map[string]string
+	cacheHits   int
+	cacheMisses int
 }
 
 // NewDGraph returns a new *DGraph
@@ -29,6 +32,10 @@ func NewDGraph() (*DGraph, error) {
 	dgraph := DGraph{
 		client: dgo.NewDgraphClient(api.NewDgraphClient(d)),
 	}
+
+	dgraph.uidCache = make(map[string]string)
+	dgraph.cacheHits = 0
+	dgraph.cacheMisses = 0
 
 	op := &api.Operation{
 		Schema: `type Article {
@@ -167,15 +174,35 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 	`
 
 	for _, article := range articles {
+		// check cache
+		if uid, ok := dg.uidCache[article.URL]; ok {
+			log.Println("UID Cache hit for", article.URL, ":", uid)
+			dg.cacheHits++
+			resp = append(resp, Article{
+				UID: uid,
+				URL: article.URL,
+			})
+			continue
+		}
+
+		dg.cacheMisses++
+
 		r, err := dg.query(ctx, txn, q, map[string]string{"$url": article.URL})
 		if err != nil {
 			return nil, err
 		}
 		if len(r["get"]) > 0 {
 			resp = append(resp, r["get"][0])
+
+			// save in cache
+			log.Println("Saving in UID Cache", article.URL, ":", r["get"][0].UID)
+
+			dg.uidCache[article.URL] = r["get"][0].UID
 		}
+
 	}
 
+	log.Printf("Cache hits: %d, misses: %d, hit ratio: %d%%\n", dg.cacheHits, dg.cacheMisses, 100*dg.cacheHits/(dg.cacheHits+dg.cacheMisses+1))
 	log.Printf("queryArticles: queried %d articles in %v\n", len(articles), time.Since(start))
 	return resp, nil
 }
