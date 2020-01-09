@@ -202,6 +202,8 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 			continue
 		}
 
+		metrics.Statsd.Count("wikidist.uidcache.miss", 1, nil, 1)
+
 		r, err := dg.query(ctx, txn, q, map[string]string{"$url": article.URL})
 		if err != nil {
 			return nil, err
