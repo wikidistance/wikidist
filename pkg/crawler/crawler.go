@@ -117,7 +117,13 @@ func (c *Crawler) addWorker() {
 			continue
 		}
 
-		c.results <- CrawlArticle(url)
+		article, err := CrawlArticle(url)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		c.results <- article
 		metrics.Statsd.Count("wikidist.articles.fetched", 1, nil, 1)
 	}
 }
