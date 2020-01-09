@@ -2,7 +2,6 @@ package crawler
 
 import (
 	"io"
-	"log"
 	"net/http"
 	s "strings"
 	"time"
@@ -18,7 +17,6 @@ func CrawlArticle(url string) db.Article {
 	start := time.Now()
 	resp, err := http.Get(prefix + url)
 	elapsed := time.Since(start)
-	log.Println("Fetched page in", elapsed, "milliseconds")
 	metrics.Statsd.Gauge("wikidist.fetcher.time", float64(elapsed.Milliseconds()), nil, 1)
 
 	if err != nil {

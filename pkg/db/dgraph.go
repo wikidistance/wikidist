@@ -104,6 +104,12 @@ func (dg *DGraph) AddVisited(article *Article) error {
 		return err
 	}
 
+	if article.Title != "" {
+		log.Println("Article", article.URL, "already has a Title !")
+	}
+
+	metrics.Statsd.Count("wikidist.article.already_crawled", 1, nil, 1)
+
 	article.UID = "_:article"
 	article.DType = []string{"Article"}
 
@@ -190,7 +196,8 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 	query Get($url: string) {
 		get(func: eq(url, $url)) {
 			uid,
-			url
+			url,
+			title
 		}
 	}
 	`
