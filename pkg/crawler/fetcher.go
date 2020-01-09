@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	s "strings"
 	"time"
 
@@ -69,6 +70,9 @@ func parsePage(client *http.Client, url string, pageBody io.ReadCloser) (title s
 					}
 					// Handle links to section: /path/to/doc#section
 					link := s.SplitN(a.Val, "#", 2)[0]
+					if !isLinkToArticle(link) {
+						continue
+					}
 
 					// Do a head request and follow redirects
 					// to ensure we have the actual article URL
@@ -78,9 +82,9 @@ func parsePage(client *http.Client, url string, pageBody io.ReadCloser) (title s
 						continue
 					}
 
-					link = res.Request.URL.String()
+					link = strings.TrimPrefix(prefix, res.Request.URL.String())
 					fmt.Println("after head", link)
-					if isLinkToArticle(link) && url != link {
+					if url != link {
 						links = append(links, link)
 					}
 					break
