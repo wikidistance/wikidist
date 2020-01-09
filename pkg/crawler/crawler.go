@@ -30,7 +30,7 @@ func NewCrawler(nWorkers int, startURL string, database db.DB) *Crawler {
 
 	c.queue = make(chan string, 100*nWorkers)
 	c.results = make(chan db.Article, 2*nWorkers)
-	c.seen = cache.New(2*time.Minute, 5*time.Minute)
+	c.seen = cache.New(5*time.Minute, 5*time.Minute)
 
 	return &c
 }
