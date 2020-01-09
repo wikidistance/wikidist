@@ -79,6 +79,7 @@ func (c *Crawler) refillQueue() error {
 		}
 
 		var newURLs int64
+		metrics.Statsd.Count("wikidist.queue.returned_urls", int64(len(urls)), nil, 1)
 		for _, url := range urls {
 			if _, ok := c.seen.Get(url); ok {
 				continue
