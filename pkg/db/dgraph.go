@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
@@ -103,12 +102,6 @@ func (dg *DGraph) AddVisited(article *Article) error {
 		return err
 	}
 
-	if article.Title != "" {
-		log.Println("Article", article.URL, "already has a Title !")
-	}
-
-	metrics.Statsd.Count("wikidist.article.already_crawled", 1, nil, 1)
-
 	article.UID = "_:article"
 	article.DType = []string{"Article"}
 
@@ -183,6 +176,7 @@ func (dg *DGraph) getOrCreate(ctx context.Context, articles []Article) ([]string
 }
 
 func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Article, error) {
+
 	txn := dg.client.NewReadOnlyTxn().BestEffort()
 	defer txn.Discard(ctx)
 
@@ -212,7 +206,9 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 		if err != nil {
 			return nil, err
 		}
+
 		if len(r["get"]) > 0 {
+
 			resp = append(resp, r["get"][0])
 
 			// save in cache

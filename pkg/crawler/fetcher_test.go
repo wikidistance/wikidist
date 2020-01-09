@@ -15,10 +15,11 @@ func TestFetcher(t *testing.T) {
 		<body>
 			<h1 id="firstHeading">Title of the page</h1>
 			<a href="http://location_outside_wikipedia.com">Outside</a>
+			<a href="/wiki/Sample_Page">Outside</a>
 			<p><a id="test" href="/wiki/Article_about_something_else">Another article</a></p> 
 		</body>
 	</html>`))
-	title, links := parsePage(fakeBody)
+	title, links := parsePage("/wiki/Sample_Page", fakeBody)
 	expectedLinks := []string{"/wiki/Article_about_something_else"}
 	expectedTitle := "Title of the page"
 
