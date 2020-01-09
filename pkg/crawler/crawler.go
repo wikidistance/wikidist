@@ -4,6 +4,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/patrickmn/go-cache"
+
 	"github.com/wikidistance/wikidist/pkg/db"
 	"github.com/wikidistance/wikidist/pkg/metrics"
 )
@@ -14,7 +16,7 @@ type Crawler struct {
 
 	queue    chan string
 	results  chan db.Article
-	seen     map[string]struct{}
+	seen     *cache.Cache
 	database db.DB
 }
 
@@ -28,7 +30,7 @@ func NewCrawler(nWorkers int, startURL string, database db.DB) *Crawler {
 
 	c.queue = make(chan string, 100*nWorkers)
 	c.results = make(chan db.Article, 2*nWorkers)
-	c.seen = make(map[string]struct{})
+	c.seen = cache.New(2*time.Minute, 5*time.Minute)
 
 	return &c
 }
@@ -65,13 +67,13 @@ func (c *Crawler) refillQueue() error {
 
 		var newURLs int64
 		for _, url := range urls {
-			if _, ok := c.seen[url]; ok {
+			if _, ok := c.seen.Get(url); ok {
 				continue
 			}
 			if len(c.queue) >= cap(c.queue) {
 				break
 			}
-			c.seen[url] = struct{}{}
+			c.seen.Set(url, struct{}{}, cache.DefaultExpiration)
 			newURLs++
 			c.queue <- url
 		}
