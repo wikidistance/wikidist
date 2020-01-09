@@ -1,6 +1,7 @@
 package crawler
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	s "strings"
@@ -11,7 +12,7 @@ import (
 	"golang.org/x/net/html"
 )
 
-func CrawlArticle(url string) db.Article {
+func CrawlArticle(url string) (db.Article, error) {
 	prefix := "https://fr.wikipedia.org"
 
 	start := time.Now()
@@ -20,7 +21,7 @@ func CrawlArticle(url string) db.Article {
 	metrics.Statsd.Gauge("wikidist.fetcher.time", float64(elapsed.Milliseconds()), nil, 1)
 
 	if err != nil {
-		panic(err)
+		return db.Article{}, fmt.Errorf("failed to fetch article %s: %w", url, err)
 	}
 
 	defer resp.Body.Close()
@@ -41,7 +42,7 @@ func CrawlArticle(url string) db.Article {
 		URL:            url,
 		Title:          title,
 		LinkedArticles: linkedArticles,
-	}
+	}, nil
 }
 
 func parsePage(url string, pageBody io.ReadCloser) (title string, links []string) {
@@ -62,12 +63,15 @@ func parsePage(url string, pageBody io.ReadCloser) (title string, links []string
 			t := z.Token()
 			if t.Data == "a" {
 				for _, a := range t.Attr {
-					if a.Key == "href" {
-						if isLinkToArticle(a.Val) && url != a.Val {
-							links = append(links, a.Val)
-						}
-						break
+					if a.Key != "href" {
+						continue
 					}
+					// Handle links to section: /path/to/doc#section
+					link := s.SplitN(a.Val, "#", 2)[0]
+					if isLinkToArticle(link) && url != link {
+						links = append(links, link)
+					}
+					break
 				}
 			}
 			if t.Data == "h1" {
