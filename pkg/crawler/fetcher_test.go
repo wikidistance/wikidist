@@ -28,6 +28,7 @@ func TestFetcher(t *testing.T) {
 		<body>
 			<h1 id="firstHeading">Title of the page</h1>
 			<a href="http://location_outside_wikipedia.com">Outside</a>
+			<a href="/wiki/Sample_Page">Outside</a>
 			<p><a id="test" href="/wiki/Article_about_something_else">Another article</a></p> 
 		</body>
 	</html>`))
@@ -35,7 +36,7 @@ func TestFetcher(t *testing.T) {
 	fakeClient := http.DefaultClient
 	fakeClient.Transport = &RoundTripper{}
 
-	title, links := parsePage(fakeClient, fakeBody)
+	title, links := parsePage(fakeClient, "/wiki/Sample_Page", fakeBody)
 	expectedLinks := []string{"/wiki/Article_about_something_else"}
 	expectedTitle := "Title of the page"
 

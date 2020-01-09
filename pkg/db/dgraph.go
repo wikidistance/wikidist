@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
@@ -23,6 +22,7 @@ type DGraph struct {
 	cacheLock   sync.Mutex
 	cacheHits   int
 	cacheMisses int
+	offset      int
 }
 
 // NewDGraph returns a new *DGraph
@@ -40,6 +40,7 @@ func NewDGraph() (*DGraph, error) {
 
 	dgraph.uidCache = make(map[string]string)
 	dgraph.cacheLock = sync.Mutex{}
+	dgraph.offset = 0
 
 	op := &api.Operation{
 		Schema: `type Article {
@@ -78,7 +79,6 @@ func (dg *DGraph) cacheSave(url string, uid string) {
 }
 
 func (dg *DGraph) AddVisited(article *Article) error {
-	start := time.Now()
 	ctx := context.Background()
 
 	//get the uids of the linked articles
@@ -123,12 +123,10 @@ func (dg *DGraph) AddVisited(article *Article) error {
 	}
 	_, err = dg.client.NewTxn().Mutate(ctx, mu)
 
-	log.Printf("AddVisited: processed article %s in %v\n", article.Title, time.Since(start))
 	return err
 }
 
 func (dg *DGraph) getOrCreate(ctx context.Context, articles []Article) ([]string, error) {
-	start := time.Now()
 	uids := make([]string, 0, len(articles))
 
 	// get the already existing articles
@@ -173,13 +171,12 @@ func (dg *DGraph) getOrCreate(ctx context.Context, articles []Article) ([]string
 		return nil, err
 	}
 
-	log.Printf("getOrCreate: processed %d articles in %v\n", len(articles), time.Since(start))
 	return uids, nil
 
 }
 
 func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Article, error) {
-	start := time.Now()
+
 	txn := dg.client.NewReadOnlyTxn().BestEffort()
 	defer txn.Discard(ctx)
 
@@ -188,17 +185,15 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 	query Get($url: string) {
 		get(func: eq(url, $url)) {
 			uid,
-			url
+			url,
+			title
 		}
 	}
 	`
 
-	cacheHits, cacheMisses := 0, 0
-
 	for _, article := range articles {
 		// check cache
 		if uid, ok := dg.cacheLookup(article.URL); ok {
-			cacheHits++
 			metrics.Statsd.Count("wikidist.uidcache.hit", 1, nil, 1)
 			resp = append(resp, Article{
 				UID: uid,
@@ -207,14 +202,15 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 			continue
 		}
 
-		cacheMisses++
 		metrics.Statsd.Count("wikidist.uidcache.miss", 1, nil, 1)
 
 		r, err := dg.query(ctx, txn, q, map[string]string{"$url": article.URL})
 		if err != nil {
 			return nil, err
 		}
+
 		if len(r["get"]) > 0 {
+
 			resp = append(resp, r["get"][0])
 
 			// save in cache
@@ -224,10 +220,6 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 
 	}
 
-	if cacheHits+cacheMisses > 0 {
-		log.Printf("Cache hits: %d, misses: %d, hit ratio: %d%%\n", cacheHits, cacheMisses, 100*cacheHits/(cacheHits+cacheMisses))
-	}
-	log.Printf("queryArticles: queried %d articles in %v\n", len(articles), time.Since(start))
 	return resp, nil
 }
 
@@ -247,19 +239,22 @@ func (dg *DGraph) query(ctx context.Context, txn *dgo.Txn, q string, vars map[st
 }
 
 func (dg *DGraph) NextsToVisit(count int) ([]string, error) {
-	start := time.Now()
 	ctx := context.TODO()
 
 	txn := dg.client.NewReadOnlyTxn().BestEffort()
 
 	var query = fmt.Sprintf(`
 	{
-		nodes(func: eq(last_crawled, "%s"), first: %d) {
+		nodes(func: eq(last_crawled, "%s"), first: %d, offset: %d) {
 			uid
 			url
+			title
 		}
 	}
-	`, dummyDate, count)
+	`, dummyDate, count, dg.offset*count)
+
+	dg.offset++
+	dg.offset %= 10
 
 	resp, err := txn.Query(ctx, query)
 	if err != nil {
@@ -278,9 +273,11 @@ func (dg *DGraph) NextsToVisit(count int) ([]string, error) {
 
 	for _, node := range decode.Nodes {
 		urls = append(urls, node.URL)
+		if node.Title != "" {
+			fmt.Println("NextToVisit returned an already crawled article:", node.URL)
+		}
 	}
 
-	log.Printf("NextToVisit: finished in %v\n", time.Since(start))
 	return urls, nil
 }
 

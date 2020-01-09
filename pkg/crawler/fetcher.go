@@ -18,7 +18,6 @@ func CrawlArticle(url string) db.Article {
 	start := time.Now()
 	resp, err := http.Get(prefix + url)
 	elapsed := time.Since(start)
-	log.Println("Fetched page in", elapsed, "milliseconds")
 	metrics.Statsd.Gauge("wikidist.fetcher.time", float64(elapsed.Milliseconds()), nil, 1)
 
 	if err != nil {
@@ -27,7 +26,7 @@ func CrawlArticle(url string) db.Article {
 
 	defer resp.Body.Close()
 
-	title, links := parsePage(http.DefaultClient, resp.Body)
+	title, links := parsePage(http.DefaultClient, url, resp.Body)
 
 	dedupedLinks := removeDuplicates(links)
 
@@ -46,7 +45,7 @@ func CrawlArticle(url string) db.Article {
 	}
 }
 
-func parsePage(client *http.Client, pageBody io.ReadCloser) (title string, links []string) {
+func parsePage(client *http.Client, url string, pageBody io.ReadCloser) (title string, links []string) {
 	z := html.NewTokenizer(pageBody)
 
 	titleIsNext := false
@@ -65,20 +64,25 @@ func parsePage(client *http.Client, pageBody io.ReadCloser) (title string, links
 			if t.Data == "a" {
 				for _, a := range t.Attr {
 					if a.Key == "href" {
-						if isLinkToArticle(a.Val) {
-							// Handle links to section: /path/to/doc#section
-							link := s.SplitN(a.Val, "#", 2)[0]
-
-							// Do a head request and follow redirects
-							// to ensure we have the actual article URL
-							res, err := client.Head(link)
-							if err != nil {
-								log.Printf("failed to fetch %s: %s", link, err)
-							}
-							links = append(links, res.Request.URL.String())
-						}
-						break
+						continue
 					}
+					// Handle links to section: /path/to/doc#section
+					link := s.SplitN(a.Val, "#", 2)[0]
+
+					// Do a head request and follow redirects
+					// to ensure we have the actual article URL
+					res, err := client.Head(link)
+					if err != nil {
+						log.Printf("failed to fetch %s: %s", link, err)
+						continue
+					}
+
+					link = res.Request.URL.String()
+					if isLinkToArticle(link) && url != link {
+						links = append(links, link)
+					}
+					break
+
 				}
 			}
 			if t.Data == "h1" {
