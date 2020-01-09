@@ -82,7 +82,7 @@ func parsePage(client *http.Client, url string, pageBody io.ReadCloser) (title s
 						continue
 					}
 
-					link = strings.TrimPrefix(prefix, res.Request.URL.String())
+					link = strings.TrimPrefix(res.Request.URL.String(), prefix)
 					fmt.Println("after head", link)
 					if url != link {
 						links = append(links, link)
