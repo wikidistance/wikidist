@@ -1,6 +1,7 @@
 package crawler
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -12,9 +13,9 @@ import (
 	"golang.org/x/net/html"
 )
 
-func CrawlArticle(url string) db.Article {
-	prefix := "https://fr.wikipedia.org"
+const prefix = "https://fr.wikipedia.org"
 
+func CrawlArticle(url string) db.Article {
 	start := time.Now()
 	resp, err := http.Get(prefix + url)
 	elapsed := time.Since(start)
@@ -71,13 +72,14 @@ func parsePage(client *http.Client, url string, pageBody io.ReadCloser) (title s
 
 					// Do a head request and follow redirects
 					// to ensure we have the actual article URL
-					res, err := client.Head(link)
+					res, err := client.Head(prefix + link)
 					if err != nil {
 						log.Printf("failed to fetch %s: %s", link, err)
 						continue
 					}
 
 					link = res.Request.URL.String()
+					fmt.Println("after head", link)
 					if isLinkToArticle(link) && url != link {
 						links = append(links, link)
 					}
