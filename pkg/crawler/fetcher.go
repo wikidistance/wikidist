@@ -63,7 +63,7 @@ func parsePage(client *http.Client, url string, pageBody io.ReadCloser) (title s
 			t := z.Token()
 			if t.Data == "a" {
 				for _, a := range t.Attr {
-					if a.Key == "href" {
+					if a.Key != "href" {
 						continue
 					}
 					// Handle links to section: /path/to/doc#section
