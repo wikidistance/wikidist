@@ -10,6 +10,11 @@ import (
 	"github.com/wikidistance/wikidist/pkg/metrics"
 )
 
+// ratio to nWorkers
+const queueSizeFactor = 200
+const resultQueueSizeFactor = 2
+const refillFactor = queueSizeFactor * 10 / 8
+
 type Crawler struct {
 	nWorkers int
 	startURL string
@@ -28,8 +33,8 @@ func NewCrawler(nWorkers int, startURL string, database db.DB) *Crawler {
 	c.nWorkers = nWorkers
 	c.startURL = startURL
 
-	c.queue = make(chan string, 100*nWorkers)
-	c.results = make(chan db.Article, 2*nWorkers)
+	c.queue = make(chan string, queueSizeFactor*nWorkers)
+	c.results = make(chan db.Article, resultQueueSizeFactor*nWorkers)
 	c.seen = cache.New(5*time.Minute, 5*time.Minute)
 
 	return &c
@@ -67,8 +72,8 @@ func (c *Crawler) metrics() {
 }
 
 func (c *Crawler) refillQueue() error {
-	if len(c.queue) <= 160*c.nWorkers {
-		urls, err := c.database.NextsToVisit(200 * c.nWorkers)
+	if len(c.queue) <= refillFactor*c.nWorkers {
+		urls, err := c.database.NextsToVisit(queueSizeFactor * c.nWorkers)
 		if err != nil {
 			return err
 		}
