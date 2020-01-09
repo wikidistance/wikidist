@@ -1,7 +1,6 @@
 package crawler
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -83,7 +82,6 @@ func parsePage(client *http.Client, url string, pageBody io.ReadCloser) (title s
 					}
 
 					link = strings.TrimPrefix(res.Request.URL.String(), prefix)
-					fmt.Println("after head", link)
 					if url != link {
 						links = append(links, link)
 					}
