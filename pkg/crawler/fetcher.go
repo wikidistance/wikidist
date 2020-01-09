@@ -62,12 +62,15 @@ func parsePage(url string, pageBody io.ReadCloser) (title string, links []string
 			t := z.Token()
 			if t.Data == "a" {
 				for _, a := range t.Attr {
-					if a.Key == "href" {
-						if isLinkToArticle(a.Val) && url != a.Val {
-							links = append(links, a.Val)
-						}
-						break
+					if a.Key != "href" {
+						continue
 					}
+					// Handle links to section: /path/to/doc#section
+					link := s.SplitN(a.Val, "#", 2)[0]
+					if isLinkToArticle(link) && url != link {
+						links = append(links, link)
+					}
+					break
 				}
 			}
 			if t.Data == "h1" {
