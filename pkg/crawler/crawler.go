@@ -67,8 +67,8 @@ func (c *Crawler) metrics() {
 }
 
 func (c *Crawler) refillQueue() error {
-	if len(c.queue) <= 80*c.nWorkers {
-		urls, err := c.database.NextsToVisit(100 * c.nWorkers)
+	if len(c.queue) <= 160*c.nWorkers {
+		urls, err := c.database.NextsToVisit(200 * c.nWorkers)
 		if err != nil {
 			return err
 		}
