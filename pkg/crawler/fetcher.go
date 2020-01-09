@@ -2,7 +2,6 @@ package crawler
 
 import (
 	"io"
-	"log"
 	"net/http"
 	s "strings"
 	"time"
@@ -18,7 +17,6 @@ func CrawlArticle(url string) db.Article {
 	start := time.Now()
 	resp, err := http.Get(prefix + url)
 	elapsed := time.Since(start)
-	log.Println("Fetched page in", elapsed, "milliseconds")
 	metrics.Statsd.Gauge("wikidist.fetcher.time", float64(elapsed.Milliseconds()), nil, 1)
 
 	if err != nil {
@@ -27,7 +25,7 @@ func CrawlArticle(url string) db.Article {
 
 	defer resp.Body.Close()
 
-	title, links := parsePage(resp.Body)
+	title, links := parsePage(url, resp.Body)
 
 	dedupedLinks := removeDuplicates(links)
 
@@ -46,7 +44,7 @@ func CrawlArticle(url string) db.Article {
 	}
 }
 
-func parsePage(pageBody io.ReadCloser) (title string, links []string) {
+func parsePage(url string, pageBody io.ReadCloser) (title string, links []string) {
 	z := html.NewTokenizer(pageBody)
 
 	titleIsNext := false
@@ -65,7 +63,7 @@ func parsePage(pageBody io.ReadCloser) (title string, links []string) {
 			if t.Data == "a" {
 				for _, a := range t.Attr {
 					if a.Key == "href" {
-						if isLinkToArticle(a.Val) {
+						if isLinkToArticle(a.Val) && url != a.Val {
 							links = append(links, a.Val)
 						}
 						break
