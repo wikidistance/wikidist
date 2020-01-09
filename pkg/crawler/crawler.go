@@ -45,6 +45,8 @@ func (c *Crawler) Run() {
 		go c.addRegisterer()
 	}
 
+	go c.metrics()
+
 	c.queue <- c.startURL
 
 	for {
@@ -52,9 +54,15 @@ func (c *Crawler) Run() {
 		if err != nil {
 			log.Println(err)
 		}
+		time.Sleep(10 * time.Millisecond)
+	}
+}
+
+func (c *Crawler) metrics() {
+	for {
 		metrics.Statsd.Gauge("wikidist.crawler.queue.length", float64(len(c.queue)), nil, 1)
 		metrics.Statsd.Gauge("wikidist.crawler.results.length", float64(len(c.results)), nil, 1)
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(10 * time.Second)
 	}
 }
 
