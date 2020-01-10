@@ -28,6 +28,8 @@ type DGraph struct {
 	offset      int
 
 	createGroup singleflight.Group
+	counter     map[string]int
+	mu          sync.Mutex
 }
 
 // NewDGraph returns a new *DGraph
@@ -162,6 +164,15 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 		}
 
 		log.Println("adding", article.URL)
+		dg.mu.Lock()
+		if _, ok := dg.counter[article.URL]; !ok {
+			dg.counter[article.URL] = 0
+		}
+		dg.counter[article.URL]++
+		if dg.counter[article.URL] < 1 {
+			panic(article.URL)
+		}
+		dg.mu.Unlock()
 		resp, err := txn.Mutate(ctx, mu)
 		if err != nil {
 			return "", err
