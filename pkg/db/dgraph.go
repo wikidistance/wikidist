@@ -124,8 +124,8 @@ func (dg *DGraph) AddVisited(article *Article) error {
 		CommitNow: true,
 	}
 	log.Println("adding", article.URL)
-	resp, err := dg.client.NewTxn().Mutate(ctx, mu)
-	log.Println("added", article.URL, string(resp.GetJson()))
+	_, err = dg.client.NewTxn().Mutate(ctx, mu)
+	log.Println("added", article.URL)
 
 	dg.mu.Lock()
 	if _, ok := dg.counter[article.URL]; !ok {
@@ -183,7 +183,7 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 			return "", err
 		}
 		uid = resp.Uids["article"]
-		log.Println("added", article.URL, string(resp.GetJson()))
+		log.Println("added", article.URL, uid)
 
 		dg.mu.Lock()
 		if _, ok := dg.counter[article.URL]; !ok {
