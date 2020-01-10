@@ -133,7 +133,7 @@ func (dg *DGraph) AddVisited(article *Article) error {
 	return err
 }
 
-func (dg *DGraph) getOrCreate(ctx context.Context, article *Article, articles []Article) ([]string, error) {
+func (dg *DGraph) getOrCreate(ctx context.Context, baseArticle *Article, articles []Article) ([]string, error) {
 	uids := make([]string, 0, len(articles))
 
 	// get the already existing articles
@@ -156,7 +156,7 @@ func (dg *DGraph) getOrCreate(ctx context.Context, article *Article, articles []
 		}
 
 		if article.URL == "/wiki/Alan_Turing" {
-			log.Printf("adding Alan_Turing for %v", article)
+			log.Printf("adding Alan_Turing for %v", baseArticle)
 		}
 
 		article.UID = "_:article"
