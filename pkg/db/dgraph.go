@@ -182,20 +182,20 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 func (dg *DGraph) fetchArticles(ctx context.Context, articles []Article) ([]string, error) {
 	uids := make([]string, 0, len(articles))
 
-	txn := dg.client.NewTxn()
+	// txn := dg.client.NewTxn()
 	for _, article := range articles {
 
-		uid, err := dg.getOrCreateWithTxn(ctx, txn, &article)
+		uid, err := dg.getOrCreate(ctx, &article)
 		if err != nil {
 			return nil, err
 		}
 		uids = append(uids, uid)
 	}
 
-	err := txn.Commit(ctx)
-	if err != nil {
-		return nil, err
-	}
+	// err := txn.Commit(ctx)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	return uids, nil
 
