@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
@@ -147,10 +146,6 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 		}
 		if len(articles) > 0 {
 			return articles[0].UID, err
-		}
-
-		if article.URL == "/wiki/Alan_Turing" {
-			log.Println("adding alan turing")
 		}
 
 		article.UID = "_:article"
