@@ -235,6 +235,9 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 		}
 
 		if len(r["get"]) > 0 {
+			if len(r["get"]) > 1 {
+				panic(fmt.Sprintf("There shouldn't ever be more than one node with same URL: %s\n", article.URL))
+			}
 
 			resp = append(resp, r["get"][0])
 
