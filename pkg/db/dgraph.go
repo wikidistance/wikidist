@@ -87,7 +87,7 @@ func (dg *DGraph) AddVisited(article *Article) error {
 	ctx := context.Background()
 
 	//get the uids of the linked articles
-	uids, err := dg.fetchArticles(ctx, article, article.LinkedArticles)
+	uids, err := dg.fetchArticles(ctx, article.LinkedArticles)
 	if err != nil {
 		return err
 	}
@@ -173,7 +173,7 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 	return uid.(string), err
 }
 
-func (dg *DGraph) fetchArticles(ctx context.Context, baseArticle *Article, articles []Article) ([]string, error) {
+func (dg *DGraph) fetchArticles(ctx context.Context, articles []Article) ([]string, error) {
 	uids := make([]string, 0, len(articles))
 
 	txn := dg.client.NewTxn()
