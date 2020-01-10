@@ -211,6 +211,8 @@ func (dg *DGraph) queryArticle(ctx context.Context, article *Article) (string, e
 	txn := dg.client.NewReadOnlyTxn().BestEffort()
 	defer txn.Discard(ctx)
 
+	log.Println("Querying article", article.URL)
+
 	q := `
 	query Get($url: string) {
 		get(func: eq(url, $url)) {
@@ -224,6 +226,7 @@ func (dg *DGraph) queryArticle(ctx context.Context, article *Article) (string, e
 	// check cache
 	if uid, ok := dg.cacheLookup(article.URL); ok {
 		metrics.Statsd.Count("wikidist.uidcache.hit", 1, nil, 1)
+		log.Println("Found", article.URL, "in cache")
 		return uid, nil
 	}
 
@@ -241,10 +244,14 @@ func (dg *DGraph) queryArticle(ctx context.Context, article *Article) (string, e
 
 		uid := r["get"][0].UID
 
+		log.Println("Found", article.URL, "at uid", uid)
+
 		// save in cache
 
 		dg.cacheSave(article.URL, uid)
 	}
+
+	log.Println("Did not find", article.URL)
 
 	return "", nil
 }
