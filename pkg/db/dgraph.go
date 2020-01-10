@@ -82,6 +82,10 @@ func (dg *DGraph) cacheSave(url string, uid string) {
 func (dg *DGraph) AddVisited(article *Article) error {
 	ctx := context.Background()
 
+	if article.URL == "/wiki/Hypercalcul" {
+		log.Println(article)
+	}
+
 	//get the uids of the linked articles
 	uids, err := dg.getOrCreate(ctx, article.LinkedArticles)
 	if err != nil {
