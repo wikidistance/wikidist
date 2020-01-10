@@ -104,6 +104,8 @@ func (dg *DGraph) AddVisited(article *Article) error {
 		})
 	}
 
+	// remove the linked articles not to create duplicates
+	article.LinkedArticles = nil
 	uid, err := dg.getOrCreate(ctx, article)
 	if err != nil {
 		return err
