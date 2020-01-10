@@ -125,6 +125,18 @@ func (dg *DGraph) AddVisited(article *Article) error {
 	}
 	_, err = dg.client.NewTxn().Mutate(ctx, mu)
 
+	log.Println("adding", article.URL)
+	dg.mu.Lock()
+	if _, ok := dg.counter[article.URL]; !ok {
+		dg.counter[article.URL] = 0
+	}
+	dg.counter[article.URL]++
+	if dg.counter[article.URL] < 1 {
+		dg.mu.Unlock()
+		panic(article.URL)
+	}
+	dg.mu.Unlock()
+
 	return err
 }
 
@@ -171,9 +183,11 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 		}
 		dg.counter[article.URL]++
 		if dg.counter[article.URL] < 1 {
+			dg.mu.Unlock()
 			panic(article.URL)
 		}
 		dg.mu.Unlock()
+
 		resp, err := txn.Mutate(ctx, mu)
 		if err != nil {
 			return "", err
