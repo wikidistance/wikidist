@@ -140,12 +140,12 @@ func (dg *DGraph) getOrCreate(ctx context.Context, article *Article) (string, er
 func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article *Article) (string, error) {
 	uid, err, _ := dg.createGroup.Do(article.URL, func() (interface{}, error) {
 
-		articles, err := dg.queryArticles(ctx, []Article{*article})
+		uid, err := dg.queryArticle(ctx, article)
 		if err != nil {
 			return "", err
 		}
-		if len(articles) > 0 {
-			return articles[0].UID, err
+		if uid != "" {
+			return uid, err
 		}
 
 		article.UID = "_:article"
@@ -164,7 +164,7 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 			return "", err
 		}
 
-		uid := resp.Uids["article"]
+		uid = resp.Uids["article"]
 		dg.cacheSave(article.URL, uid)
 
 		return uid, nil
@@ -195,12 +195,11 @@ func (dg *DGraph) fetchArticles(ctx context.Context, baseArticle *Article, artic
 
 }
 
-func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Article, error) {
+func (dg *DGraph) queryArticle(ctx context.Context, article *Article) (string, error) {
 
 	txn := dg.client.NewReadOnlyTxn().BestEffort()
 	defer txn.Discard(ctx)
 
-	resp := make([]Article, 0, len(articles))
 	q := `
 	query Get($url: string) {
 		get(func: eq(url, $url)) {
@@ -211,39 +210,32 @@ func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Arti
 	}
 	`
 
-	for _, article := range articles {
-		// check cache
-		if uid, ok := dg.cacheLookup(article.URL); ok {
-			metrics.Statsd.Count("wikidist.uidcache.hit", 1, nil, 1)
-			resp = append(resp, Article{
-				UID: uid,
-				URL: article.URL,
-			})
-			continue
-		}
-
-		metrics.Statsd.Count("wikidist.uidcache.miss", 1, nil, 1)
-
-		r, err := dg.query(ctx, txn, q, map[string]string{"$url": article.URL})
-		if err != nil {
-			return nil, err
-		}
-
-		if len(r["get"]) > 0 {
-			if len(r["get"]) > 1 {
-				panic(fmt.Sprintf("There shouldn't ever be more than one node with same URL: %s\n", article.URL))
-			}
-
-			resp = append(resp, r["get"][0])
-
-			// save in cache
-
-			dg.cacheSave(article.URL, r["get"][0].UID)
-		}
-
+	// check cache
+	if uid, ok := dg.cacheLookup(article.URL); ok {
+		metrics.Statsd.Count("wikidist.uidcache.hit", 1, nil, 1)
+		return uid, nil
 	}
 
-	return resp, nil
+	metrics.Statsd.Count("wikidist.uidcache.miss", 1, nil, 1)
+
+	r, err := dg.query(ctx, txn, q, map[string]string{"$url": article.URL})
+	if err != nil {
+		return "", err
+	}
+
+	if len(r["get"]) > 0 {
+		if len(r["get"]) > 1 {
+			panic(fmt.Sprintf("There shouldn't ever be more than one node with same URL: %s\n", article.URL))
+		}
+
+		uid := r["get"][0].UID
+
+		// save in cache
+
+		dg.cacheSave(article.URL, uid)
+	}
+
+	return "", nil
 }
 
 func (dg *DGraph) query(ctx context.Context, txn *dgo.Txn, q string, vars map[string]string) (map[string][]Article, error) {
