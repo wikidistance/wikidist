@@ -24,6 +24,9 @@ type DGraph struct {
 	cacheHits   int
 	cacheMisses int
 	offset      int
+
+	creating map[string]struct{}
+	cMu      sync.Mutex
 }
 
 // NewDGraph returns a new *DGraph
@@ -80,13 +83,17 @@ func (dg *DGraph) cacheSave(url string, uid string) {
 }
 
 func (dg *DGraph) AddVisited(article *Article) error {
-	ctx := context.Background()
+	dg.cMu.Lock()
+	dg.creating[article.URL] = struct{}{}
+	dg.cMu.Unlock()
 
-	for _, linked := range article.LinkedArticles {
-		if linked.URL == "/wiki/Alan_Turing" {
-			log.Println(article.URL, "is linked to alan turing")
-		}
-	}
+	defer func() {
+		dg.cMu.Lock()
+		delete(dg.creating, article.URL)
+		dg.cMu.Unlock()
+	}()
+
+	ctx := context.Background()
 
 	//get the uids of the linked articles
 	uids, err := dg.getOrCreate(ctx, article, article.LinkedArticles)
@@ -139,6 +146,12 @@ func (dg *DGraph) AddVisited(article *Article) error {
 func (dg *DGraph) getOrCreate(ctx context.Context, baseArticle *Article, articles []Article) ([]string, error) {
 	uids := make([]string, 0, len(articles))
 
+	for _, linked := range articles {
+		if linked.URL == "/wiki/Alan_Turing" {
+			log.Println(baseArticle.URL, "is linked to alan turing")
+		}
+	}
+
 	// get the already existing articles
 	existingArticles, err := dg.queryArticles(ctx, articles)
 	if err != nil {
@@ -156,6 +169,12 @@ func (dg *DGraph) getOrCreate(ctx context.Context, baseArticle *Article, article
 	for _, article := range articles {
 		if _, ok := existing[article.URL]; ok {
 			continue
+		}
+
+		dg.cMu.Lock()
+		_, ok := dg.creating[article.URL]
+		// the article is not yet in the db but another worker is creating it
+		if ok {
 		}
 
 		if article.URL == "/wiki/Alan_Turing" {
