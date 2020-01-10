@@ -43,6 +43,7 @@ func NewDGraph() (*DGraph, error) {
 	}
 
 	dgraph.uidCache = make(map[string]string)
+	dgraph.creating = make(map[string]struct{})
 	dgraph.cacheLock = sync.Mutex{}
 	dgraph.offset = 0
 
