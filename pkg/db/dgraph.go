@@ -172,11 +172,11 @@ func (dg *DGraph) getOrCreate(ctx context.Context, baseArticle *Article, article
 			continue
 		}
 
-		dg.cMu.Lock()
-		_, ok := dg.creating[article.URL]
-		// the article is not yet in the db but another worker is creating it
-		if ok {
-		}
+		// dg.cMu.Lock()
+		// _, ok := dg.creating[article.URL]
+		// // the article is not yet in the db but another worker is creating it
+		// if ok {
+		// }
 
 		if article.URL == "/wiki/Alan_Turing" {
 			log.Printf("adding Alan_Turing for %v\n", baseArticle)
