@@ -146,7 +146,7 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 	uid, err, _ := dg.createGroup.Do(article.URL, func() (interface{}, error) {
 
 		txn := dg.client.NewTxn()
-		ctx := context.TODO()
+		ctx := context.Background()
 
 		log.Println("Entered singleflight with url", article.URL)
 
