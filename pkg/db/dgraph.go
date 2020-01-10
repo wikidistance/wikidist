@@ -123,15 +123,16 @@ func (dg *DGraph) AddVisited(article *Article) error {
 		SetJson:   pb,
 		CommitNow: true,
 	}
-	_, err = dg.client.NewTxn().Mutate(ctx, mu)
-
 	log.Println("adding", article.URL)
+	resp, err := dg.client.NewTxn().Mutate(ctx, mu)
+	log.Println("added", article.URL, resp)
+
 	dg.mu.Lock()
 	if _, ok := dg.counter[article.URL]; !ok {
 		dg.counter[article.URL] = 0
 	}
 	dg.counter[article.URL]++
-	if dg.counter[article.URL] < 1 {
+	if dg.counter[article.URL] > 1 {
 		dg.mu.Unlock()
 		panic(article.URL)
 	}
@@ -177,23 +178,24 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 		}
 
 		log.Println("adding", article.URL)
+		resp, err := txn.Mutate(ctx, mu)
+		if err != nil {
+			return "", err
+		}
+		uid = resp.Uids["article"]
+		log.Println("added", article.URL, resp)
+
 		dg.mu.Lock()
 		if _, ok := dg.counter[article.URL]; !ok {
 			dg.counter[article.URL] = 0
 		}
 		dg.counter[article.URL]++
-		if dg.counter[article.URL] < 1 {
+		if dg.counter[article.URL] > 1 {
 			dg.mu.Unlock()
 			panic(article.URL)
 		}
 		dg.mu.Unlock()
 
-		resp, err := txn.Mutate(ctx, mu)
-		if err != nil {
-			return "", err
-		}
-
-		uid = resp.Uids["article"]
 		dg.cacheSave(article.URL, uid)
 
 		return uid, nil
