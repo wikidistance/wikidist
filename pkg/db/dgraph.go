@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -146,6 +147,10 @@ func (dg *DGraph) getOrCreate(ctx context.Context, articles []Article) ([]string
 	for _, article := range articles {
 		if _, ok := existing[article.URL]; ok {
 			continue
+		}
+
+		if article.URL == "/wiki/Alan_Turing" {
+			log.Printf("adding Alan_Turing")
 		}
 
 		article.UID = "_:article"
