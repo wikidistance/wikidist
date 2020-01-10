@@ -122,9 +122,9 @@ func (dg *DGraph) AddVisited(article *Article) error {
 		SetJson:   pb,
 		CommitNow: true,
 	}
-	log.Println("adding", article.URL)
+	log.Println("linking", article.URL)
 	_, err = dg.client.NewTxn().Mutate(ctx, mu)
-	log.Println("added", article.URL)
+	log.Println("linked", article.URL)
 
 	return err
 }
