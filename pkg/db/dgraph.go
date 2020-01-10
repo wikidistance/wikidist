@@ -152,6 +152,7 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 			return "", err
 		}
 		if uid != "" {
+			log.Println("Found existing node for", article.URL, "with uid", uid)
 			return uid, err
 		}
 
