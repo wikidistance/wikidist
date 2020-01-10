@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/sync/singleflight"
+
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
 	"github.com/wikidistance/wikidist/pkg/metrics"
@@ -25,8 +27,7 @@ type DGraph struct {
 	cacheMisses int
 	offset      int
 
-	creating map[string]struct{}
-	cMu      sync.Mutex
+	createGroup singleflight.Group
 }
 
 // NewDGraph returns a new *DGraph
@@ -43,7 +44,6 @@ func NewDGraph() (*DGraph, error) {
 	}
 
 	dgraph.uidCache = make(map[string]string)
-	dgraph.creating = make(map[string]struct{})
 	dgraph.cacheLock = sync.Mutex{}
 	dgraph.offset = 0
 
@@ -84,20 +84,11 @@ func (dg *DGraph) cacheSave(url string, uid string) {
 }
 
 func (dg *DGraph) AddVisited(article *Article) error {
-	dg.cMu.Lock()
-	dg.creating[article.URL] = struct{}{}
-	dg.cMu.Unlock()
-
-	defer func() {
-		dg.cMu.Lock()
-		delete(dg.creating, article.URL)
-		dg.cMu.Unlock()
-	}()
 
 	ctx := context.Background()
 
 	//get the uids of the linked articles
-	uids, err := dg.getOrCreate(ctx, article, article.LinkedArticles)
+	uids, err := dg.fetchArticles(ctx, article, article.LinkedArticles)
 	if err != nil {
 		return err
 	}
@@ -109,28 +100,18 @@ func (dg *DGraph) AddVisited(article *Article) error {
 			UID: uid,
 		})
 	}
-	article.LinkedArticles = linkedArticles
 
-	// query whether the article already exist
-	resp, err := dg.queryArticles(ctx, []Article{*article})
+	uid, err := dg.getOrCreate(ctx, article)
 	if err != nil {
 		return err
 	}
 
-	if article.URL == "/wiki/Alan_Turing" {
-		fmt.Println("adding the real alan turing")
-	}
-	article.UID = "_:article"
+	// now that we know for sure the uid of the article, let's mutate it again
+	article.UID = uid
 	article.DType = []string{"Article"}
-
-	// use the real uid if the article is already created
-	if len(resp) > 0 {
-		article.UID = resp[0].UID
-	}
-
+	article.LinkedArticles = linkedArticles
 	article.LastCrawled = time.Now().Format("2006-01-02T15:04:05Z")
 
-	// update the article with all the new links
 	pb, err := json.Marshal(article)
 	if err != nil {
 		return err
@@ -144,43 +125,32 @@ func (dg *DGraph) AddVisited(article *Article) error {
 	return err
 }
 
-func (dg *DGraph) getOrCreate(ctx context.Context, baseArticle *Article, articles []Article) ([]string, error) {
-	uids := make([]string, 0, len(articles))
-
-	for _, linked := range articles {
-		if linked.URL == "/wiki/Alan_Turing" {
-			log.Println(baseArticle.URL, "is linked to alan turing")
-		}
-	}
-
-	// get the already existing articles
-	existingArticles, err := dg.queryArticles(ctx, articles)
-	if err != nil {
-		return nil, err
-	}
-
-	existing := make(map[string]struct{})
-	for _, article := range existingArticles {
-		existing[article.URL] = struct{}{}
-		uids = append(uids, article.UID)
-	}
-
-	// create the non-existing articles
+// getOrCreate returns the uid of the article based on the URL whether created or already existing
+func (dg *DGraph) getOrCreate(ctx context.Context, article *Article) (string, error) {
 	txn := dg.client.NewTxn()
-	for _, article := range articles {
-		if _, ok := existing[article.URL]; ok {
-			continue
-		}
+	defer txn.Discard(ctx)
+	uid, err := dg.getOrCreateWithTxn(ctx, txn, article)
+	if err != nil {
+		return uid, err
+	}
 
-		// dg.cMu.Lock()
-		// _, ok := dg.creating[article.URL]
-		// // the article is not yet in the db but another worker is creating it
-		// if ok {
-		// }
+	txn.Commit(ctx)
+	return uid, err
+}
+
+func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article *Article) (string, error) {
+	uid, err, _ := dg.createGroup.Do(article.URL, func() (interface{}, error) {
+
+		articles, err := dg.queryArticles(ctx, []Article{*article})
+		if err != nil {
+			return "", err
+		}
+		if len(articles) > 0 {
+			return articles[0].UID, err
+		}
 
 		if article.URL == "/wiki/Alan_Turing" {
-			log.Printf("adding Alan_Turing for %v\n", baseArticle)
-			log.Println(existing)
+			log.Println("adding alan turing")
 		}
 
 		article.UID = "_:article"
@@ -188,7 +158,7 @@ func (dg *DGraph) getOrCreate(ctx context.Context, baseArticle *Article, article
 		article.LastCrawled = dummyDate
 		pb, err := json.Marshal(article)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 
 		mu := &api.Mutation{
@@ -196,12 +166,32 @@ func (dg *DGraph) getOrCreate(ctx context.Context, baseArticle *Article, article
 		}
 		resp, err := txn.Mutate(ctx, mu)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 
-		uids = append(uids, resp.Uids["article"])
+		uid := resp.Uids["article"]
+		dg.cacheSave(article.URL, uid)
+
+		return uid, nil
+	})
+
+	return uid.(string), err
+}
+
+func (dg *DGraph) fetchArticles(ctx context.Context, baseArticle *Article, articles []Article) ([]string, error) {
+	uids := make([]string, 0, len(articles))
+
+	txn := dg.client.NewTxn()
+	for _, article := range articles {
+
+		uid, err := dg.getOrCreateWithTxn(ctx, txn, &article)
+		if err != nil {
+			return nil, err
+		}
+		uids = append(uids, uid)
 	}
-	err = txn.Commit(ctx)
+
+	err := txn.Commit(ctx)
 	if err != nil {
 		return nil, err
 	}
