@@ -84,7 +84,7 @@ func (dg *DGraph) AddVisited(article *Article) error {
 
 	for _, linked := range article.LinkedArticles {
 		if linked.URL == "/wiki/Alan_Turing" {
-			log.Println(article)
+			log.Println(article.URL, "is linked to alan turing")
 		}
 	}
 
