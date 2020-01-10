@@ -145,6 +145,8 @@ func (dg *DGraph) getOrCreate(ctx context.Context, article *Article) (string, er
 func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article *Article) (string, error) {
 	uid, err, _ := dg.createGroup.Do(article.URL, func() (interface{}, error) {
 
+		log.Println("Entered singleflight with url", article.URL)
+
 		uid, err := dg.queryArticle(ctx, article)
 		if err != nil {
 			return "", err
@@ -172,6 +174,8 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 		}
 		uid = resp.Uids["article"]
 		log.Println("added", article.URL, uid)
+
+		log.Println("Exiting singleflight with url", article.URL)
 
 		return uid, nil
 	})
