@@ -183,7 +183,7 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 			return "", err
 		}
 		uid = resp.Uids["article"]
-		log.Println("added", article.URL, uid)
+		log.Println("added", article.URL, resp.Uids)
 
 		dg.mu.Lock()
 		if _, ok := dg.counter[article.URL]; !ok {
