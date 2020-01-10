@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -159,6 +160,8 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 		mu := &api.Mutation{
 			SetJson: pb,
 		}
+
+		log.Println("adding", article.URL)
 		resp, err := txn.Mutate(ctx, mu)
 		if err != nil {
 			return "", err
