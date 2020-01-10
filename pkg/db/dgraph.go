@@ -28,8 +28,6 @@ type DGraph struct {
 	offset      int
 
 	createGroup singleflight.Group
-	counter     map[string]int
-	mu          sync.Mutex
 }
 
 // NewDGraph returns a new *DGraph
@@ -46,7 +44,6 @@ func NewDGraph() (*DGraph, error) {
 	}
 
 	dgraph.uidCache = make(map[string]string)
-	dgraph.counter = make(map[string]int)
 	dgraph.cacheLock = sync.Mutex{}
 	dgraph.offset = 0
 
@@ -125,20 +122,9 @@ func (dg *DGraph) AddVisited(article *Article) error {
 		SetJson:   pb,
 		CommitNow: true,
 	}
-	log.Println("adding", article.URL, "with linked articles", article.LinkedArticles)
+	log.Println("adding", article.URL)
 	_, err = dg.client.NewTxn().Mutate(ctx, mu)
 	log.Println("added", article.URL)
-
-	dg.mu.Lock()
-	if _, ok := dg.counter[article.URL]; !ok {
-		dg.counter[article.URL] = 0
-	}
-	dg.counter[article.URL]++
-	if dg.counter[article.URL] > 1 {
-		dg.mu.Unlock()
-		panic(article.URL)
-	}
-	dg.mu.Unlock()
 
 	return err
 }
@@ -185,20 +171,7 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 			return "", err
 		}
 		uid = resp.Uids["article"]
-		log.Println("added", article.URL, resp.Uids)
-
-		dg.mu.Lock()
-		if _, ok := dg.counter[article.URL]; !ok {
-			dg.counter[article.URL] = 0
-		}
-		dg.counter[article.URL]++
-		if dg.counter[article.URL] > 1 {
-			dg.mu.Unlock()
-			panic(article.URL)
-		}
-		dg.mu.Unlock()
-
-		dg.cacheSave(article.URL, uid)
+		log.Println("added", article.URL, uid)
 
 		return uid, nil
 	})
