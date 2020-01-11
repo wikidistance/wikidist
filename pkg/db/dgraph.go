@@ -180,8 +180,10 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 
 		log.Println("added", article.URL, uid)
 
-		log.Println("Exiting singleflight with url", article.URL)
 		txn.Commit(ctx)
+		dg.cacheSave(article.URL, uid)
+
+		log.Println("Exiting singleflight with url", article.URL)
 		return uid, nil
 	})
 
