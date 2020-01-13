@@ -90,6 +90,7 @@ func parsePage(url string, pageBody io.ReadCloser) (title string, links []string
 	}
 
 	if title == "" {
+		metrics.Statsd.Count("wikidist.article.notitle", 1, nil, 1)
 
 		fmt.Printf(buf.String())
 	}
