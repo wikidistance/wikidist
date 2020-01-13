@@ -15,6 +15,9 @@ const queueSizeFactor = 200
 const resultQueueSizeFactor = 2
 const refillFactor = queueSizeFactor / 2
 
+// requests per minute
+const rateLimit = 1500
+
 type Crawler struct {
 	nWorkers int
 	startURL string
@@ -23,6 +26,7 @@ type Crawler struct {
 	queue          chan string
 	results        chan db.Article
 	notifyDequeued chan bool
+	canMakeRequest chan struct{}
 	seen           *cache.Cache
 	database       db.DB
 }
@@ -31,6 +35,7 @@ func NewCrawler(nWorkers int, prefix string, startURL string, database db.DB) *C
 	c := Crawler{}
 
 	c.database = database
+	c.canMakeRequest = make(chan struct{}, 10)
 
 	c.nWorkers = nWorkers
 	c.startURL = startURL
@@ -43,7 +48,7 @@ func NewCrawler(nWorkers int, prefix string, startURL string, database db.DB) *C
 	return &c
 }
 
-func (c *Crawler) Run() {
+func (c *Crawler) Start() {
 
 	for i := 1; i <= c.nWorkers; i++ {
 		go c.addWorker()
@@ -54,6 +59,7 @@ func (c *Crawler) Run() {
 	}
 
 	go c.metrics()
+	go c.rateLimit()
 	go c.refillQueue()
 
 	c.queue <- c.startURL
@@ -118,7 +124,10 @@ func (c *Crawler) addWorker() {
 			continue
 		}
 
+		<-c.canMakeRequest
+
 		article, err := CrawlArticle(url, c.prefix)
+
 		if err != nil {
 			log.Println(err)
 
@@ -132,5 +141,11 @@ func (c *Crawler) addWorker() {
 
 		c.results <- article
 		metrics.Statsd.Count("wikidist.articles.fetched", 1, nil, 1)
+	}
+}
+
+func (c *Crawler) rateLimit() {
+	for range time.Tick(time.Minute / rateLimit) {
+		c.canMakeRequest <- struct{}{}
 	}
 }
