@@ -1,11 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 
 	"github.com/wikidistance/wikidist/pkg/crawler"
 	"github.com/wikidistance/wikidist/pkg/db"
@@ -38,6 +41,9 @@ func main() {
 
 	c.Start()
 
-	for {
-	}
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, syscall.SIGINT, syscall.SIGTERM)
+
+	<-done
+	fmt.Println("exiting")
 }
