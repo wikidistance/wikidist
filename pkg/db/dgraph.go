@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
@@ -122,9 +121,7 @@ func (dg *DGraph) AddVisited(article *Article) error {
 		SetJson:   pb,
 		CommitNow: true,
 	}
-	log.Println("linking", article.URL)
 	_, err = dg.client.NewTxn().Mutate(ctx, mu)
-	log.Println("linked", article.URL)
 
 	return err
 }
@@ -148,14 +145,11 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 		txn := dg.client.NewTxn()
 		ctx := context.Background()
 
-		log.Println("Entered singleflight with url", article.URL)
-
 		uid, err := dg.queryArticle(ctx, article)
 		if err != nil {
 			return "", err
 		}
 		if uid != "" {
-			log.Println("Found existing node for", article.URL, "with uid", uid)
 			return uid, err
 		}
 
@@ -171,19 +165,15 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 			SetJson: pb,
 		}
 
-		log.Println("adding", article.URL)
 		resp, err := txn.Mutate(ctx, mu)
 		if err != nil {
 			return "", err
 		}
 		uid = resp.Uids["article"]
 
-		log.Println("added", article.URL, uid)
-
 		txn.Commit(ctx)
 		dg.cacheSave(article.URL, uid)
 
-		log.Println("Exiting singleflight with url", article.URL)
 		return uid, nil
 	})
 
@@ -217,8 +207,6 @@ func (dg *DGraph) queryArticle(ctx context.Context, article *Article) (string, e
 	txn := dg.client.NewReadOnlyTxn().BestEffort()
 	defer txn.Discard(ctx)
 
-	log.Println("Querying article", article.URL)
-
 	q := `
 	query Get($url: string) {
 		get(func: eq(url, $url)) {
@@ -232,7 +220,6 @@ func (dg *DGraph) queryArticle(ctx context.Context, article *Article) (string, e
 	// check cache
 	if uid, ok := dg.cacheLookup(article.URL); ok {
 		metrics.Statsd.Count("wikidist.uidcache.hit", 1, nil, 1)
-		log.Println("Found", article.URL, "in cache")
 		return uid, nil
 	}
 
@@ -250,15 +237,11 @@ func (dg *DGraph) queryArticle(ctx context.Context, article *Article) (string, e
 
 		uid := r["get"][0].UID
 
-		log.Println("Found", article.URL, "at uid", uid)
-
 		// save in cache
 		dg.cacheSave(article.URL, uid)
 
 		return uid, nil
 	}
-
-	log.Println("Did not find", article.URL)
 
 	return "", nil
 }
