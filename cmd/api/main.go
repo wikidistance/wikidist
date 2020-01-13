@@ -12,11 +12,15 @@ import (
 func main() {
 	d, err := db.NewDGraph()
 	dg := (*api.DGraph)(d)
+
 	if err != nil {
 		log.Fatal("Couldn't connect to DGraph")
 	}
+
 	http.HandleFunc("/", api.DefaultHandler)
 	http.HandleFunc("/shortest", dg.ShortestPathHandler)
+	http.HandleFunc("/search", dg.PageSearchHandler)
+
 	fmt.Println("APi is running on port 8081")
 	log.Fatal(http.ListenAndServe(":8081", nil))
 }

@@ -25,6 +25,13 @@ type DGraph struct {
 	offset      int
 }
 
+type WebPage struct {
+	Uid            string    `json:"uid"`
+	Url            string    `json:"url"`
+	Title          string    `json:"title"`
+	LinkedArticles []WebPage `json:"linked_articles"`
+}
+
 // NewDGraph returns a new *DGraph
 func NewDGraph() (*DGraph, error) {
 	// Dial a gRPC connection. The address to dial to can be configured when
@@ -50,10 +57,9 @@ func NewDGraph() (*DGraph, error) {
 			last_crawled: dateTime
 		}
 
-		title: string @index(term) @lang .
+		title: string @index(term, trigram, fulltext) @lang .
 		url: string @index(hash) @lang .
 		last_crawled: dateTime @index(hour) .
-
 		`,
 	}
 
@@ -300,9 +306,60 @@ func (dg *DGraph) ShortestPath(from string, to string) ([]Article, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := make(map[string][]Article, 0)
-	println("resp", resp.String())
-	json.Unmarshal(resp.GetJson(), &result)
-	return result["path"], nil
 
+	result := make(map[string][]Article, 0)
+
+	err = json.Unmarshal(resp.GetJson(), &result)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result["path"], nil
+}
+
+func GenerateSearchQuery(depth int) string {
+	if depth == 0 {
+		return `
+			title
+			url
+			uid
+		`
+	}
+
+	return fmt.Sprintf(`
+		title
+		url
+		uid
+		linked_articles {
+			%s
+		}
+	`, GenerateSearchQuery(depth-1))
+}
+
+func (dg *DGraph) SearchArticleByTitle(s string, depth int) ([]Article, error) {
+	ctx := context.TODO()
+
+	q := fmt.Sprintf(`{
+		find_node_by_title(func: match(title, "%s", 2))
+		{
+		  %s
+		}
+	  }`, s, GenerateSearchQuery(depth))
+
+	result, err := dg.client.NewTxn().Query(ctx, q)
+
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[string][]Article, 0)
+
+	err = json.Unmarshal(result.GetJson(), &res)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return res["find_node_by_title"], nil
 }
