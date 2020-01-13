@@ -123,6 +123,8 @@ func (dg *DGraph) AddVisited(article *Article) error {
 	}
 	_, err = dg.client.NewTxn().Mutate(ctx, mu)
 
+	metrics.Statsd.Count("wikidist.links.created", int64(len(linkedArticles)), nil, 1)
+
 	return err
 }
 
