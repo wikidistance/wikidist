@@ -12,8 +12,8 @@ import (
 	"golang.org/x/net/html"
 )
 
-func CrawlArticle(url string) (db.Article, error) {
-	prefix := "https://fr.wikipedia.org"
+func CrawlArticle(url string, prefix string) (db.Article, error) {
+	prefix = "https://" + prefix + ".wikipedia.org"
 
 	start := time.Now()
 	resp, err := http.Get(prefix + url)
