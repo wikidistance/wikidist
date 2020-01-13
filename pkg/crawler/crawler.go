@@ -18,6 +18,7 @@ const refillFactor = queueSizeFactor / 2
 type Crawler struct {
 	nWorkers int
 	startURL string
+	prefix   string
 
 	queue    chan string
 	results  chan db.Article
@@ -25,13 +26,14 @@ type Crawler struct {
 	database db.DB
 }
 
-func NewCrawler(nWorkers int, startURL string, database db.DB) *Crawler {
+func NewCrawler(nWorkers int, prefix string, startURL string, database db.DB) *Crawler {
 	c := Crawler{}
 
 	c.database = database
 
 	c.nWorkers = nWorkers
 	c.startURL = startURL
+	c.prefix = prefix
 
 	c.queue = make(chan string, queueSizeFactor*nWorkers)
 	c.results = make(chan db.Article, resultQueueSizeFactor*nWorkers)
@@ -117,7 +119,7 @@ func (c *Crawler) addWorker() {
 			continue
 		}
 
-		article, err := CrawlArticle(url)
+		article, err := CrawlArticle(url, c.prefix)
 		if err != nil {
 			log.Println(err)
 			continue
