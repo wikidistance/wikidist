@@ -28,6 +28,11 @@ func CrawlArticle(url string, prefix string) (db.Article, error) {
 
 	defer resp.Body.Close()
 
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		metrics.Statsd.Count("wikidist.fetcher.failed_requests", 1, nil, 1)
+		return db.Article{}, fmt.Errorf("Request failure for url %s: status code %d", url, resp.StatusCode)
+	}
+
 	title, links := parsePage(url, resp.Body)
 
 	dedupedLinks := removeDuplicates(links)
