@@ -25,7 +25,7 @@ type Crawler struct {
 
 	queue          chan string
 	results        chan db.Article
-	notifyDequeued chan bool
+	notifyDequeued chan struct{}
 	canMakeRequest chan struct{}
 	seen           *cache.Cache
 	database       db.DB
@@ -41,6 +41,7 @@ func NewCrawler(nWorkers int, prefix string, startURL string, database db.DB) *C
 	c.startURL = startURL
 	c.prefix = prefix
 
+	c.notifyDequeued = make(chan struct{}, 1)
 	c.queue = make(chan string, queueSizeFactor*nWorkers)
 	c.results = make(chan db.Article, resultQueueSizeFactor*nWorkers)
 	c.seen = cache.New(5*time.Minute, 5*time.Minute)
@@ -73,7 +74,8 @@ func (c *Crawler) metrics() {
 }
 
 func (c *Crawler) refillQueue() {
-	for <-c.notifyDequeued {
+	for {
+		<-c.notifyDequeued
 		if len(c.queue) <= refillFactor*c.nWorkers {
 			urls, err := c.database.NextsToVisit(queueSizeFactor * c.nWorkers)
 			if err != nil {
@@ -116,7 +118,7 @@ func (c *Crawler) addWorker() {
 
 		// non-blocking write to channel
 		select {
-		case c.notifyDequeued <- true:
+		case c.notifyDequeued <- struct{}{}:
 		default:
 		}
 
