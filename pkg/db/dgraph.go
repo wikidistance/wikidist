@@ -253,8 +253,9 @@ func (dg *DGraph) queryArticle(ctx context.Context, article *Article) (string, e
 		log.Println("Found", article.URL, "at uid", uid)
 
 		// save in cache
-
 		dg.cacheSave(article.URL, uid)
+
+		return uid, nil
 	}
 
 	log.Println("Did not find", article.URL)
