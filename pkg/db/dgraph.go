@@ -142,9 +142,6 @@ func (dg *DGraph) getOrCreate(ctx context.Context, article *Article) (string, er
 func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article *Article) (string, error) {
 	uid, err, _ := dg.createGroup.Do(article.URL, func() (interface{}, error) {
 
-		txn := dg.client.NewTxn()
-		ctx := context.Background()
-
 		uid, err := dg.queryArticle(ctx, article)
 		if err != nil {
 			return "", err
@@ -171,7 +168,6 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 		}
 		uid = resp.Uids["article"]
 
-		txn.Commit(ctx)
 		dg.cacheSave(article.URL, uid)
 
 		return uid, nil
@@ -193,10 +189,10 @@ func (dg *DGraph) fetchArticles(ctx context.Context, articles []Article) ([]stri
 		uids = append(uids, uid)
 	}
 
-	// err := txn.Commit(ctx)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	err := txn.Commit(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	return uids, nil
 
