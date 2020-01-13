@@ -300,15 +300,15 @@ func (dg *DGraph) ShortestPath(from string, to string) ([]Article, error) {
 		return nil, err
 	}
 
-	result := make(map[string][]Article, 0)
-
-	err = json.Unmarshal(resp.GetJson(), &result)
-
+	var decode struct {
+		Path []Article
+	}
+	err = json.Unmarshal(resp.GetJson(), &decode)
 	if err != nil {
 		return nil, err
 	}
 
-	return result["path"], nil
+	return decode.Path, nil
 }
 
 func GenerateSearchQuery(depth int) string {
