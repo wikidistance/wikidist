@@ -68,3 +68,29 @@ func (dg *DGraph) PageSearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(res)
 }
+
+func (dg *DGraph) UidSearchHandler(w http.ResponseWriter, r *http.Request) {
+	var search Search
+	var res []db.Article
+
+	w.Header().Set("Content-type", "application/json;charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Please enter a valid uid")
+	}
+
+	err = json.Unmarshal(reqBody, &search)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Unable to parse the body")
+	}
+
+	res = dg.UidSearch(search.Search, search.Depth)
+
+	json.NewEncoder(w).Encode(res)
+}

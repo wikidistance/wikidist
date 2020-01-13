@@ -25,13 +25,6 @@ type DGraph struct {
 	offset      int
 }
 
-type WebPage struct {
-	Uid            string    `json:"uid"`
-	Url            string    `json:"url"`
-	Title          string    `json:"title"`
-	LinkedArticles []WebPage `json:"linked_articles"`
-}
-
 // NewDGraph returns a new *DGraph
 func NewDGraph() (*DGraph, error) {
 	// Dial a gRPC connection. The address to dial to can be configured when
@@ -362,4 +355,31 @@ func (dg *DGraph) SearchArticleByTitle(s string, depth int) ([]Article, error) {
 	}
 
 	return res["find_node_by_title"], nil
+}
+
+func (dg *DGraph) SearchArticleByUid(uid string, depth int) ([]Article, error) {
+	ctx := context.TODO()
+
+	q := fmt.Sprintf(`{
+		find_node_by_uid(func: uid(%s))
+		{
+		  %s
+		}
+	  }`, uid, GenerateSearchQuery(depth))
+
+	result, err := dg.client.NewTxn().Query(ctx, q)
+
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[string][]Article, 0)
+
+	err = json.Unmarshal(result.GetJson(), &res)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return res["find_node_by_uid"], nil
 }
