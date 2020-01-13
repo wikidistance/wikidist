@@ -16,17 +16,17 @@ func main() {
 
 	args := os.Args[1:]
 
-	fmt.Println(args)
+	log.Println(args)
 
 	if len(args) != 3 {
-		fmt.Println("Usage: crawler <prefix> <startUrl> <nWorkers>")
+		log.Println("Usage: crawler <prefix> <startUrl> <nWorkers>")
 		return
 	}
 
 	nWorkers, err := strconv.Atoi(args[2])
 
 	if err != nil {
-		fmt.Println("nWorkers should be an integer")
+		log.Println("nWorkers should be an integer")
 		return
 	}
 

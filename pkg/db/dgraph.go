@@ -319,7 +319,7 @@ func (dg *DGraph) NextsToVisit(count int) ([]string, error) {
 
 	resp, err := txn.Query(ctx, query)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	var decode struct {
@@ -327,7 +327,7 @@ func (dg *DGraph) NextsToVisit(count int) ([]string, error) {
 	}
 
 	if err := json.Unmarshal(resp.GetJson(), &decode); err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	urls := make([]string, 0)
@@ -335,7 +335,7 @@ func (dg *DGraph) NextsToVisit(count int) ([]string, error) {
 	for _, node := range decode.Nodes {
 		urls = append(urls, node.URL)
 		if node.Title != "" {
-			fmt.Println("NextToVisit returned an already crawled article:", node.URL)
+			log.Println("NextToVisit returned an already crawled article:", node.URL)
 		}
 	}
 

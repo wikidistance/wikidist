@@ -20,10 +20,11 @@ type Crawler struct {
 	startURL string
 	prefix   string
 
-	queue    chan string
-	results  chan db.Article
-	seen     *cache.Cache
-	database db.DB
+	queue          chan string
+	results        chan db.Article
+	notifyDequeued chan bool
+	seen           *cache.Cache
+	database       db.DB
 }
 
 func NewCrawler(nWorkers int, prefix string, startURL string, database db.DB) *Crawler {
@@ -53,51 +54,43 @@ func (c *Crawler) Run() {
 	}
 
 	go c.metrics()
+	go c.refillQueue()
 
 	c.queue <- c.startURL
-
-	for {
-		err := c.refillQueue()
-		if err != nil {
-			log.Println(err)
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
 }
 
 func (c *Crawler) metrics() {
-	for {
+	for range time.Tick(10 * time.Second) {
 		metrics.Statsd.Gauge("wikidist.crawler.queue.length", float64(len(c.queue)), nil, 1)
 		metrics.Statsd.Gauge("wikidist.crawler.results.length", float64(len(c.results)), nil, 1)
-		time.Sleep(10 * time.Second)
 	}
 }
 
-func (c *Crawler) refillQueue() error {
-	if len(c.queue) <= refillFactor*c.nWorkers {
-		urls, err := c.database.NextsToVisit(queueSizeFactor * c.nWorkers)
-		if err != nil {
-			return err
-		}
-
-		var newURLs int64
-		metrics.Statsd.Count("wikidist.queue.returned_urls", int64(len(urls)), nil, 1)
-		for _, url := range urls {
-			if _, ok := c.seen.Get(url); ok {
-				continue
+func (c *Crawler) refillQueue() {
+	for <-c.notifyDequeued {
+		if len(c.queue) <= refillFactor*c.nWorkers {
+			urls, err := c.database.NextsToVisit(queueSizeFactor * c.nWorkers)
+			if err != nil {
+				log.Println(err)
 			}
-			if len(c.queue) >= cap(c.queue) {
-				break
-			}
-			c.seen.Set(url, struct{}{}, cache.DefaultExpiration)
-			newURLs++
-			c.queue <- url
-		}
-		metrics.Statsd.Count("wikidist.queue.new_urls", newURLs, nil, 1)
 
+			var newURLs int64
+			metrics.Statsd.Count("wikidist.queue.returned_urls", int64(len(urls)), nil, 1)
+			for _, url := range urls {
+				if _, ok := c.seen.Get(url); ok {
+					continue
+				}
+				if len(c.queue) >= cap(c.queue) {
+					break
+				}
+				c.seen.Set(url, struct{}{}, cache.DefaultExpiration)
+				newURLs++
+				c.queue <- url
+			}
+			metrics.Statsd.Count("wikidist.queue.new_urls", newURLs, nil, 1)
+
+		}
 	}
-
-	return nil
 }
 
 func (c *Crawler) addRegisterer() {
@@ -114,6 +107,12 @@ func (c *Crawler) addRegisterer() {
 func (c *Crawler) addWorker() {
 	for {
 		url := <-c.queue
+
+		// non-blocking write to channel
+		select {
+		case c.notifyDequeued <- true:
+		default:
+		}
 
 		if url == "" {
 			continue
