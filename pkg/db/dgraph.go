@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -69,7 +70,40 @@ func NewDGraph() (*DGraph, error) {
 
 	err = dgraph.client.Alter(context.Background(), op)
 
+	go dgraph.checkDbConsistency()
+
 	return &dgraph, err
+}
+
+func (db *DGraph) checkDbConsistency() {
+	for range time.Tick(15 * time.Minute) {
+		resp, err := db.client.NewReadOnlyTxn().BestEffort().Query(context.Background(), `
+		{
+			duplicate (func: has(url)) @groupby(url) @filter(gt(count, 1))  {
+			  count(uid)
+			}
+		  }`)
+		if err != nil {
+			continue
+		}
+
+		r := make(map[string][]map[string][]map[string]string)
+		err = json.Unmarshal(resp.Json, &r)
+		if err != nil {
+			continue
+		}
+
+		if result, ok := r["duplicate"]; !ok {
+			metrics.Statsd.SimpleServiceCheck("dgraph.consistency", 0)
+		} else {
+			metrics.Statsd.SimpleServiceCheck("dgraph.consistency", 2)
+
+			for _, duplicate := range result[0]["@groupby"] {
+				log.Println(duplicate["url"], "is duplicated in the db")
+			}
+		}
+
+	}
 }
 
 func (dg *DGraph) cacheLookup(url string) (uid string, ok bool) {
