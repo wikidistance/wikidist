@@ -24,7 +24,6 @@ func DefaultHandler(w http.ResponseWriter, r *http.Request) {
 func (dg *DGraph) ShortestPathHandler(w http.ResponseWriter, r *http.Request) {
 	dg2 := (*db.DGraph)(dg)
 	from, ok := r.URL.Query()["from"]
-	fmt.Fprintf(w, "from[0] = %s, from = %s", from[0], from)
 	if !ok || len(from[0]) < 1 {
 		fmt.Fprint(w, "Need a from argument")
 		return
