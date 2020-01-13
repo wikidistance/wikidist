@@ -121,6 +121,12 @@ func (c *Crawler) addWorker() {
 		article, err := CrawlArticle(url, c.prefix)
 		if err != nil {
 			log.Println(err)
+
+			// try putting the url back in the queue
+			select {
+			case c.queue <- url:
+			default:
+			}
 			continue
 		}
 
