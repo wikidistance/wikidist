@@ -1,6 +1,7 @@
 package crawler
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -46,11 +47,15 @@ func CrawlArticle(url string, prefix string) (db.Article, error) {
 }
 
 func parsePage(url string, pageBody io.ReadCloser) (title string, links []string) {
-	z := html.NewTokenizer(pageBody)
+	var buf bytes.Buffer
+	tee := io.TeeReader(pageBody, &buf)
+
+	z := html.NewTokenizer(tee)
 
 	titleIsNext := false
+	done := false
 
-	for {
+	for !done {
 		tt := z.Next()
 		if titleIsNext {
 			titleIsNext = false
@@ -58,7 +63,7 @@ func parsePage(url string, pageBody io.ReadCloser) (title string, links []string
 		}
 		switch {
 		case tt == html.ErrorToken:
-			return
+			done = true
 		case tt == html.StartTagToken:
 			t := z.Token()
 			if t.Data == "a" {
@@ -83,6 +88,13 @@ func parsePage(url string, pageBody io.ReadCloser) (title string, links []string
 			}
 		}
 	}
+
+	if title == "" {
+
+		fmt.Printf(buf.String())
+	}
+
+	return
 }
 
 func isLinkToArticle(link string) bool {

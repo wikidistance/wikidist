@@ -105,7 +105,7 @@ func (c *Crawler) addRegisterer() {
 		result := <-c.results
 		resultCopy := result
 
-		log.Println("Registering", result.URL)
+		log.Println("Registering", result.URL, result.Title, len(result.LinkedArticles))
 		c.database.AddVisited(&resultCopy)
 		metrics.Statsd.Count("wikidist.articles.registered", 1, nil, 1)
 	}
