@@ -60,10 +60,9 @@ func (c *Crawler) Run() {
 }
 
 func (c *Crawler) metrics() {
-	for {
+	for range time.Tick(10 * time.Second) {
 		metrics.Statsd.Gauge("wikidist.crawler.queue.length", float64(len(c.queue)), nil, 1)
 		metrics.Statsd.Gauge("wikidist.crawler.results.length", float64(len(c.results)), nil, 1)
-		time.Sleep(10 * time.Second)
 	}
 }
 
