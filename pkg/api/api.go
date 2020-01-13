@@ -57,7 +57,12 @@ func (dg *DGraph) PageSearchHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Please enter a valid search string")
 	}
 
-	json.Unmarshal(reqBody, &search)
+	err = json.Unmarshal(reqBody, &search)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Unable to parse the body")
+	}
 
 	res = dg.PageSearch(search.Search, search.Depth)
 

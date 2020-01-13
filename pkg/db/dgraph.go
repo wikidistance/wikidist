@@ -308,8 +308,13 @@ func (dg *DGraph) ShortestPath(from string, to string) ([]Article, error) {
 	}
 
 	result := make(map[string][]Article, 0)
-	println("resp", resp.String())
-	json.Unmarshal(resp.GetJson(), &result)
+
+	err = json.Unmarshal(resp.GetJson(), &result)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return result["path"], nil
 }
 
@@ -350,7 +355,11 @@ func (dg *DGraph) SearchArticleByTitle(s string, depth int) ([]Article, error) {
 
 	res := make(map[string][]Article, 0)
 
-	json.Unmarshal(result.GetJson(), &res)
+	err = json.Unmarshal(result.GetJson(), &res)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return res["find_node_by_title"], nil
 }
