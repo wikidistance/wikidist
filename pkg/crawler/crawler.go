@@ -107,7 +107,12 @@ func (c *Crawler) addRegisterer() {
 func (c *Crawler) addWorker() {
 	for {
 		url := <-c.queue
-		c.notifyDequeued <- true
+
+		// non-blocking write to channel
+		select {
+		case c.notifyDequeued <- true:
+		default:
+		}
 
 		if url == "" {
 			continue
