@@ -44,7 +44,6 @@ func (dg *DGraph) ShortestPathHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (dg *DGraph) PageSearchHandler(w http.ResponseWriter, r *http.Request) {
-
 	var search Search
 	var res []db.Article
 
@@ -60,7 +59,7 @@ func (dg *DGraph) PageSearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	json.Unmarshal(reqBody, &search)
 
-	res = PageSearch(search.Search, search.Depth)
+	res = dg.PageSearch(search.Search, search.Depth)
 
 	json.NewEncoder(w).Encode(res)
 }

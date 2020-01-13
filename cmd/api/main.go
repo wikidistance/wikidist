@@ -22,6 +22,5 @@ func main() {
 	http.HandleFunc("/search", dg.PageSearchHandler)
 
 	fmt.Println("APi is running on port 8081")
-
 	log.Fatal(http.ListenAndServe(":8081", nil))
 }
