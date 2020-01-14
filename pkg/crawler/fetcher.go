@@ -34,6 +34,11 @@ func CrawlArticle(title string, prefix string) (db.Article, error) {
 
 	missing, description, links, err := parseResponse(result)
 
+	if err != nil {
+		fmt.Println("Error while fetching article", title, ":", err)
+		return db.Article{}, err
+	}
+
 	if missing {
 		log.Println("Article", title, "is missing")
 		metrics.Statsd.Count("wikidist.crawler.articles.missing", 1, nil, 1)
@@ -70,6 +75,8 @@ func parseResponse(response map[string]interface{}) (bool, string, []string, err
 			switch desc.(type) {
 			case string:
 				description = desc.(string)
+			default:
+				return true, "", []string{}, fmt.Errorf("Incorrect description in answer")
 			}
 		}
 
@@ -79,6 +86,8 @@ func parseResponse(response map[string]interface{}) (bool, string, []string, err
 			switch link["title"].(type) {
 			case string:
 				titles = append(titles, link["title"].(string))
+			default:
+				return true, "", []string{}, fmt.Errorf("Incorrect title in answer")
 			}
 		}
 		return false, description, titles, nil
