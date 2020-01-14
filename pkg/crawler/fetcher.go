@@ -35,7 +35,7 @@ func CrawlArticle(title string, prefix string) (db.Article, error) {
 	missing, description, links, err := parseResponse(result)
 
 	if err != nil {
-		fmt.Println("Error while fetching article", title, ":", err)
+		log.Println("Error while fetching article", title, ":", err)
 		return db.Article{}, err
 	}
 
@@ -72,12 +72,11 @@ func parseResponse(response map[string]interface{}) (bool, string, []string, err
 
 		description := ""
 		if desc, ok := page["description"]; ok {
-			switch desc.(type) {
-			case string:
-				description = desc.(string)
-			default:
-				return true, "", []string{}, fmt.Errorf("Incorrect description in answer")
-			}
+			description = desc.(string)
+		}
+
+		if _, ok := page["links"]; !ok {
+			return false, description, []string{}, nil
 		}
 
 		links := page["links"].([]interface{})
