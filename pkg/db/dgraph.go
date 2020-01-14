@@ -25,7 +25,6 @@ type DGraph struct {
 	cacheLock   sync.Mutex
 	cacheHits   int
 	cacheMisses int
-	offset      int
 
 	createGroup singleflight.Group
 }
@@ -45,7 +44,6 @@ func NewDGraph() (*DGraph, error) {
 
 	dgraph.uidCache = make(map[string]string)
 	dgraph.cacheLock = sync.Mutex{}
-	dgraph.offset = 0
 
 	op := &api.Operation{
 		Schema: `type Article {
@@ -301,9 +299,6 @@ func (dg *DGraph) NextsToVisit(count int) ([]string, error) {
 		}
 	}
 	`, dummyDate, count)
-
-	dg.offset++
-	dg.offset %= 10
 
 	resp, err := txn.Query(ctx, query)
 	if err != nil {
