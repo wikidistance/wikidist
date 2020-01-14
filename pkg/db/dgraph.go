@@ -30,13 +30,6 @@ type DGraph struct {
 	createGroup singleflight.Group
 }
 
-type WebPage struct {
-	Uid            string    `json:"uid"`
-	Url            string    `json:"url"`
-	Title          string    `json:"title"`
-	LinkedArticles []WebPage `json:"linked_articles"`
-}
-
 // NewDGraph returns a new *DGraph
 func NewDGraph() (*DGraph, error) {
 	// Dial a gRPC connection. The address to dial to can be configured when
@@ -57,13 +50,11 @@ func NewDGraph() (*DGraph, error) {
 	op := &api.Operation{
 		Schema: `type Article {
 			title: string
-			url: string
 			linked_articles: [Article]
 			last_crawled: dateTime
 		}
 
-		title: string @index(term, trigram, fulltext) @lang .
-		url: string @index(hash) @lang .
+		title: string @index(hash, trigram, fulltext) @lang .
 		last_crawled: dateTime @index(hour) .
 		`,
 	}
@@ -79,7 +70,7 @@ func (db *DGraph) checkDbConsistency() {
 	for range time.Tick(15 * time.Minute) {
 		resp, err := db.client.NewReadOnlyTxn().BestEffort().Query(context.Background(), `
 		{
-			duplicate (func: has(url)) @groupby(url) @filter(gt(count, 1))  {
+			duplicate (func: has(title)) @groupby(title) @filter(gt(count, 1))  {
 			  count(uid)
 			}
 		  }`)
@@ -99,27 +90,27 @@ func (db *DGraph) checkDbConsistency() {
 			metrics.Statsd.SimpleServiceCheck("dgraph.consistency", 2)
 
 			for _, duplicate := range result[0]["@groupby"] {
-				log.Println(duplicate["url"], "is duplicated in the db")
+				log.Println(duplicate["title"], "is duplicated in the db")
 			}
 		}
 
 	}
 }
 
-func (dg *DGraph) cacheLookup(url string) (uid string, ok bool) {
+func (dg *DGraph) cacheLookup(title string) (uid string, ok bool) {
 	dg.cacheLock.Lock()
 	defer dg.cacheLock.Unlock()
 
-	uid, ok = dg.uidCache[url]
+	uid, ok = dg.uidCache[title]
 
 	return uid, ok
 }
 
-func (dg *DGraph) cacheSave(url string, uid string) {
+func (dg *DGraph) cacheSave(title string, uid string) {
 	dg.cacheLock.Lock()
 	defer dg.cacheLock.Unlock()
 
-	dg.uidCache[url] = uid
+	dg.uidCache[title] = uid
 }
 
 func (dg *DGraph) AddVisited(article *Article) error {
@@ -168,7 +159,7 @@ func (dg *DGraph) AddVisited(article *Article) error {
 	return err
 }
 
-// getOrCreate returns the uid of the article based on the URL whether created or already existing
+// getOrCreate returns the uid of the article based on the Title whether created or already existing
 func (dg *DGraph) getOrCreate(ctx context.Context, article *Article) (string, error) {
 	txn := dg.client.NewTxn()
 	defer txn.Discard(ctx)
@@ -182,7 +173,7 @@ func (dg *DGraph) getOrCreate(ctx context.Context, article *Article) (string, er
 }
 
 func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article *Article) (string, error) {
-	uid, err, _ := dg.createGroup.Do(article.URL, func() (interface{}, error) {
+	uid, err, _ := dg.createGroup.Do(article.Title, func() (interface{}, error) {
 
 		uid, err := dg.queryArticle(ctx, article)
 		if err != nil {
@@ -210,7 +201,7 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 		}
 		uid = resp.Uids["article"]
 
-		dg.cacheSave(article.URL, uid)
+		dg.cacheSave(article.Title, uid)
 
 		return uid, nil
 	})
@@ -223,7 +214,6 @@ func (dg *DGraph) fetchArticles(ctx context.Context, articles []Article) ([]stri
 
 	txn := dg.client.NewTxn()
 	for _, article := range articles {
-
 		uid, err := dg.getOrCreateWithTxn(ctx, txn, &article)
 		if err != nil {
 			return nil, err
@@ -246,37 +236,36 @@ func (dg *DGraph) queryArticle(ctx context.Context, article *Article) (string, e
 	defer txn.Discard(ctx)
 
 	q := `
-	query Get($url: string) {
-		get(func: eq(url, $url)) {
+	query Get($title: string) {
+		get(func: eq(title, $title)) {
 			uid,
-			url,
 			title
 		}
 	}
 	`
 
 	// check cache
-	if uid, ok := dg.cacheLookup(article.URL); ok {
+	if uid, ok := dg.cacheLookup(article.Title); ok {
 		metrics.Statsd.Count("wikidist.uidcache.hit", 1, nil, 1)
 		return uid, nil
 	}
 
 	metrics.Statsd.Count("wikidist.uidcache.miss", 1, nil, 1)
 
-	r, err := dg.query(ctx, txn, q, map[string]string{"$url": article.URL})
+	r, err := dg.query(ctx, txn, q, map[string]string{"$title": article.Title})
 	if err != nil {
 		return "", err
 	}
 
 	if len(r["get"]) > 0 {
 		if len(r["get"]) > 1 {
-			panic(fmt.Sprintf("There shouldn't ever be more than one node with same URL: %s\n", article.URL))
+			panic(fmt.Sprintf("There shouldn't ever be more than one node with same Title: %s\n", article.Title))
 		}
 
 		uid := r["get"][0].UID
 
 		// save in cache
-		dg.cacheSave(article.URL, uid)
+		dg.cacheSave(article.Title, uid)
 
 		return uid, nil
 	}
@@ -306,13 +295,12 @@ func (dg *DGraph) NextsToVisit(count int) ([]string, error) {
 
 	var query = fmt.Sprintf(`
 	{
-		nodes(func: eq(last_crawled, "%s"), first: %d, offset: %d) {
+		nodes(func: eq(last_crawled, "%s"), first: %d) {
 			uid
-			url
 			title
 		}
 	}
-	`, dummyDate, count, dg.offset*count)
+	`, dummyDate, count)
 
 	dg.offset++
 	dg.offset %= 10
@@ -330,16 +318,13 @@ func (dg *DGraph) NextsToVisit(count int) ([]string, error) {
 		log.Println(err)
 	}
 
-	urls := make([]string, 0)
+	titles := make([]string, 0)
 
 	for _, node := range decode.Nodes {
-		urls = append(urls, node.URL)
-		if node.Title != "" {
-			log.Println("NextToVisit returned an already crawled article:", node.URL)
-		}
+		titles = append(titles, node.Title)
 	}
 
-	return urls, nil
+	return titles, nil
 }
 
 func (dg *DGraph) ShortestPath(from string, to string) ([]Article, error) {
@@ -351,7 +336,6 @@ func (dg *DGraph) ShortestPath(from string, to string) ([]Article, error) {
 		path(func: uid(path)) {
 			uid,
 			title,
-			url
 		}
 	}
 
@@ -377,14 +361,12 @@ func GenerateSearchQuery(depth int) string {
 	if depth == 0 {
 		return `
 			title
-			url
 			uid
 		`
 	}
 
 	return fmt.Sprintf(`
 		title
-		url
 		uid
 		linked_articles {
 			%s

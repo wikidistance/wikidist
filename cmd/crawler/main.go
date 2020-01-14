@@ -21,7 +21,7 @@ func main() {
 	log.Println(args)
 
 	if len(args) != 3 {
-		log.Println("Usage: crawler <prefix> <startUrl> <nWorkers>")
+		log.Println("Usage: crawler <prefix> <startTitle> <nWorkers>")
 		return
 	}
 
