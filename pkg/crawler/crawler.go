@@ -136,6 +136,8 @@ func (c *Crawler) addWorker() {
 
 		<-c.canMakeRequest
 
+		log.Println("Fetching", title)
+
 		article, err := CrawlArticle(title, c.prefix)
 
 		if err != nil {
