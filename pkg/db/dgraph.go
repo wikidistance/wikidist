@@ -48,11 +48,14 @@ func NewDGraph() (*DGraph, error) {
 	op := &api.Operation{
 		Schema: `type Article {
 			title: string
+			description: string
+			missing: boolean
 			linked_articles: [Article]
 			last_crawled: dateTime
 		}
 
 		title: string @index(hash, trigram, fulltext) @lang .
+		description: string @index(term) @lang .
 		last_crawled: dateTime @index(hour) .
 		`,
 	}
