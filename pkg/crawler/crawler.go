@@ -1,6 +1,7 @@
 package crawler
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -114,7 +115,9 @@ func (c *Crawler) addRegisterer() {
 		resultCopy := result
 
 		log.Println("Registering", result.Title, len(result.LinkedArticles), result.Missing)
+		start := time.Now()
 		c.database.AddVisited(&resultCopy)
+		fmt.Println("Completed AddVisited in", time.Since(start))
 		log.Println("Registered", result.Title)
 		metrics.Statsd.Count("wikidist.articles.registered", 1, nil, 1)
 	}

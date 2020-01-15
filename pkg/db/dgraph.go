@@ -119,20 +119,25 @@ func (dg *DGraph) AddVisited(article *Article) error {
 
 	ctx := context.Background()
 
+	start := time.Now()
 	//get the uids of the linked articles
 	uids, err := dg.fetchArticles(ctx, article.LinkedArticles)
 	if err != nil {
 		return err
 	}
+	fmt.Println("Got linked uids in", time.Since(start))
 
 	// add the uids
+	start = time.Now()
 	linkedArticles := make([]Article, 0, len(article.LinkedArticles))
 	for _, uid := range uids {
 		linkedArticles = append(linkedArticles, Article{
 			UID: uid,
 		})
 	}
+	fmt.Println("Added uids in", time.Since(start))
 
+	start = time.Now()
 	// remove the linked articles not to create duplicates
 	article.LinkedArticles = nil
 	uid, err := dg.getOrCreate(ctx, article)
@@ -155,6 +160,7 @@ func (dg *DGraph) AddVisited(article *Article) error {
 		CommitNow: true,
 	}
 	_, err = dg.client.NewTxn().Mutate(ctx, mu)
+	fmt.Println("Created new article in", time.Since(start))
 
 	metrics.Statsd.Count("wikidist.links.created", int64(len(linkedArticles)), nil, 1)
 
