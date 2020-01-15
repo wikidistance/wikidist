@@ -183,7 +183,7 @@ func (dg *DGraph) getOrCreate(ctx context.Context, article *Article) (string, er
 func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article *Article) (string, error) {
 	uid, err, _ := dg.createGroup.Do(article.Title, func() (interface{}, error) {
 
-		uid, err := dg.queryArticle(ctx, article)
+		uid, err := dg.queryArticle(ctx, article.Title)
 		if err != nil {
 			return "", err
 		}
@@ -238,7 +238,7 @@ func (dg *DGraph) fetchArticles(ctx context.Context, articles []Article) ([]stri
 
 }
 
-func (dg *DGraph) queryArticle(ctx context.Context, article *Article) (string, error) {
+func (dg *DGraph) queryArticle(ctx context.Context, title string) (string, error) {
 
 	txn := dg.client.NewReadOnlyTxn().BestEffort()
 	defer txn.Discard(ctx)
@@ -253,27 +253,27 @@ func (dg *DGraph) queryArticle(ctx context.Context, article *Article) (string, e
 	`
 
 	// check cache
-	if uid, ok := dg.cacheLookup(article.Title); ok {
+	if uid, ok := dg.cacheLookup(title); ok {
 		metrics.Statsd.Count("wikidist.uidcache.hit", 1, nil, 1)
 		return uid, nil
 	}
 
 	metrics.Statsd.Count("wikidist.uidcache.miss", 1, nil, 1)
 
-	r, err := dg.query(ctx, txn, q, map[string]string{"$title": article.Title})
+	r, err := dg.query(ctx, txn, q, map[string]string{"$title": title})
 	if err != nil {
 		return "", err
 	}
 
 	if len(r["get"]) > 0 {
 		if len(r["get"]) > 1 {
-			panic(fmt.Sprintf("There shouldn't ever be more than one node with same Title: %s\n", article.Title))
+			panic(fmt.Sprintf("There shouldn't ever be more than one node with same Title: %s\n", title))
 		}
 
 		uid := r["get"][0].UID
 
 		// save in cache
-		dg.cacheSave(article.Title, uid)
+		dg.cacheSave(title, uid)
 
 		return uid, nil
 	}
