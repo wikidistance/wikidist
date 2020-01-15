@@ -5,7 +5,7 @@ type Article struct {
 	UID            string    `json:"uid,omitempty"`
 	Title          string    `json:"title,omitempty"`
 	Description    string    `json:"description,omitempty"`
-	Missing        bool      `json:"missing,omitempty"`
+	Missing        bool      `json:"missing"`
 	LinkedArticles []Article `json:"linked_articles,omitempty"`
 	LastCrawled    string    `json:"last_crawled,omitempty"`
 	DType          []string  `json:"D_type,omitempty"`
