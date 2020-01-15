@@ -140,7 +140,7 @@ func (dg *DGraph) AddVisited(article *Article) error {
 	start = time.Now()
 	// remove the linked articles not to create duplicates
 	article.LinkedArticles = nil
-	uid, err := dg.getOrCreate(ctx, article)
+	uid, err := dg.getOrCreate(ctx, article.Title)
 	if err != nil {
 		return err
 	}
@@ -168,10 +168,10 @@ func (dg *DGraph) AddVisited(article *Article) error {
 }
 
 // getOrCreate returns the uid of the article based on the Title whether created or already existing
-func (dg *DGraph) getOrCreate(ctx context.Context, article *Article) (string, error) {
+func (dg *DGraph) getOrCreate(ctx context.Context, title string) (string, error) {
 	txn := dg.client.NewTxn()
 	defer txn.Discard(ctx)
-	uid, err := dg.getOrCreateWithTxn(ctx, txn, article)
+	uid, err := dg.getOrCreateWithTxn(ctx, txn, title)
 	if err != nil {
 		return uid, err
 	}
@@ -180,10 +180,10 @@ func (dg *DGraph) getOrCreate(ctx context.Context, article *Article) (string, er
 	return uid, err
 }
 
-func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article *Article) (string, error) {
-	uid, err, _ := dg.createGroup.Do(article.Title, func() (interface{}, error) {
+func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, title string) (string, error) {
+	uid, err, _ := dg.createGroup.Do(title, func() (interface{}, error) {
 
-		uid, err := dg.queryArticle(ctx, article.Title)
+		uid, err := dg.queryArticle(ctx, title)
 		if err != nil {
 			return "", err
 		}
@@ -191,9 +191,14 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 			return uid, err
 		}
 
-		article.UID = "_:article"
-		article.DType = []string{"Article"}
-		article.LastCrawled = dummyDate
+		// Empty article to be created, with only the title
+		article := Article{
+			UID:         "_:article",
+			Title:       title,
+			DType:       []string{"Article"},
+			LastCrawled: dummyDate,
+		}
+
 		pb, err := json.Marshal(article)
 		if err != nil {
 			return "", err
@@ -209,7 +214,7 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, article 
 		}
 		uid = resp.Uids["article"]
 
-		dg.cacheSave(article.Title, uid)
+		dg.cacheSave(title, uid)
 
 		return uid, nil
 	})
@@ -222,7 +227,7 @@ func (dg *DGraph) fetchArticles(ctx context.Context, articles []Article) ([]stri
 
 	txn := dg.client.NewTxn()
 	for _, article := range articles {
-		uid, err := dg.getOrCreateWithTxn(ctx, txn, &article)
+		uid, err := dg.getOrCreateWithTxn(ctx, txn, article.Title)
 		if err != nil {
 			return nil, err
 		}
