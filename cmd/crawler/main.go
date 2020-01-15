@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -45,5 +44,5 @@ func main() {
 	signal.Notify(done, syscall.SIGINT, syscall.SIGTERM)
 
 	<-done
-	fmt.Println("exiting")
+	log.Println("exiting")
 }

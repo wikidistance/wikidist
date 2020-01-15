@@ -125,7 +125,7 @@ func (dg *DGraph) AddVisited(article *Article) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("Got linked uids in", time.Since(start))
+	log.Println("Got linked uids in", time.Since(start))
 
 	// add the uids
 	start = time.Now()
@@ -135,7 +135,7 @@ func (dg *DGraph) AddVisited(article *Article) error {
 			UID: uid,
 		})
 	}
-	fmt.Println("Added uids in", time.Since(start))
+	log.Println("Added uids in", time.Since(start))
 
 	start = time.Now()
 	// remove the linked articles not to create duplicates
@@ -160,7 +160,7 @@ func (dg *DGraph) AddVisited(article *Article) error {
 		CommitNow: true,
 	}
 	_, err = dg.client.NewTxn().Mutate(ctx, mu)
-	fmt.Println("Created new article in", time.Since(start))
+	log.Println("Created new article in", time.Since(start))
 
 	metrics.Statsd.Count("wikidist.links.created", int64(len(linkedArticles)), nil, 1)
 
