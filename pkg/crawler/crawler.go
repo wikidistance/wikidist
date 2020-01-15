@@ -44,7 +44,7 @@ func NewCrawler(nWorkers int, prefix string, startTitle string, database db.DB) 
 	c.notifyDequeued = make(chan struct{}, 1)
 	c.queue = make(chan string, queueSizeFactor*nWorkers)
 	c.results = make(chan db.Article, resultQueueSizeFactor*nWorkers)
-	c.seen = cache.New(5*time.Minute, 5*time.Minute)
+	c.seen = cache.New(30*time.Minute, 30*time.Minute)
 
 	return &c
 }
