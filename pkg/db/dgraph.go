@@ -54,7 +54,7 @@ func NewDGraph() (*DGraph, error) {
 			last_crawled: dateTime
 		}
 
-		title: string @index(hash, trigram, fulltext) @lang .
+		title: string @index(hash) @lang .
 		description: string @index(term) @lang .
 		last_crawled: dateTime @index(hour) .
 		missing: bool @index(bool) .
