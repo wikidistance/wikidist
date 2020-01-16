@@ -15,10 +15,18 @@ import (
 
 // CrawlArticle : Crawls an article given its title
 func CrawlArticle(title string, prefix string) (db.Article, error) {
-	baseURL := "https://" + prefix + ".wikipedia.org/w/api.php?format=json&action=query&prop=links|description&pllimit=500&plnamespace=0"
+	baseURL := "https://" + prefix + ".wikipedia.org/w/api.php"
+
+	query := url.Values{}
+	query.Set("format", "json")
+	query.Add("action", "query")
+	query.Add("prop", "links|description")
+	query.Add("pllimit", "500")
+	query.Add("plnamespace", "0")
+	query.Add("titles", url.QueryEscape(title))
 
 	// TODO: Pagination logic
-	resp, err := http.Get(baseURL + "&titles=" + url.QueryEscape(title))
+	resp, err := http.Get(baseURL + "?" + query.Encode())
 	if err != nil {
 		log.Printf("Request failed for article %s: %w", title, err)
 		metrics.Statsd.Count("wikidist.requests", 1, []string{"state:hard_failure"}, 1)
