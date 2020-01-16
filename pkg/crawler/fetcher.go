@@ -25,6 +25,7 @@ func CrawlArticle(title string, prefix string) (db.Article, error) {
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		log.Println("Request failed for article", title, ", status", resp.StatusCode)
+		return db.Article{}, fmt.Errorf("Rate limited")
 	}
 
 	body, _ := ioutil.ReadAll(resp.Body)

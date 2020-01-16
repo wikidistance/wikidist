@@ -17,7 +17,7 @@ const resultQueueSizeFactor = 2
 const refillFactor = queueSizeFactor / 2
 
 // requests per minute
-const rateLimit = 100000
+const rateLimit = 5000
 
 type Crawler struct {
 	nWorkers   int
