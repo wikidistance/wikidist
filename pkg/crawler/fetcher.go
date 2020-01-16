@@ -67,7 +67,14 @@ func CrawlArticle(title string, prefix string) (db.Article, error) {
 }
 
 func parseResponse(response map[string]interface{}) (bool, string, []string, error) {
+	if _, ok := response["query"]; !ok {
+		return false, "", []string{}, fmt.Errorf("Malformed response")
+	}
 	query := response["query"].(map[string]interface{})
+
+	if _, ok := query["pages"]; !ok {
+		return false, "", []string{}, fmt.Errorf("Malformed response")
+	}
 	titles := make([]string, 0)
 	for _, value := range (query["pages"]).(map[string]interface{}) {
 		page := value.(map[string]interface{})
