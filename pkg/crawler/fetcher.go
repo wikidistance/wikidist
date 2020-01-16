@@ -40,7 +40,6 @@ func CrawlArticle(title string, prefix string) (db.Article, error) {
 	}
 
 	if missing {
-		log.Println("Article", title, "is missing")
 		metrics.Statsd.Count("wikidist.crawler.articles.missing", 1, nil, 1)
 	}
 
