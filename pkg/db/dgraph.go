@@ -54,12 +54,14 @@ func NewDGraph() (*DGraph, error) {
 			missing: boolean
 			linked_articles: [Article]
 			last_crawled: dateTime
+			pageID: int
 		}
 
 		title: string @index(hash) @lang .
 		description: string @index(term) @lang .
 		last_crawled: dateTime @index(hour) .
 		missing: bool @index(bool) .
+		pageID: int @index(int) .
 		`,
 	}
 

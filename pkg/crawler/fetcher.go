@@ -44,7 +44,7 @@ func CrawlArticle(title string, prefix string) (db.Article, error) {
 	var result map[string]interface{}
 	json.Unmarshal(body, &result)
 
-	missing, description, links, err := parseResponse(result)
+	missing, description, links, pageID, err := parseResponse(result)
 
 	if err != nil {
 		log.Println("Error while fetching article", title, ":", err)
@@ -63,25 +63,31 @@ func CrawlArticle(title string, prefix string) (db.Article, error) {
 		Description:    description,
 		Missing:        missing,
 		LinkedArticles: linkedArticles,
+		PageID:         pageID,
 	}, nil
 }
 
-func parseResponse(response map[string]interface{}) (bool, string, []string, error) {
+func parseResponse(response map[string]interface{}) (bool, string, []string, int, error) {
 	if _, ok := response["query"]; !ok {
-		return false, "", []string{}, fmt.Errorf("Malformed response")
+		return false, "", []string{}, 0, fmt.Errorf("Malformed response")
 	}
 	query := response["query"].(map[string]interface{})
 
 	if _, ok := query["pages"]; !ok {
-		return false, "", []string{}, fmt.Errorf("Malformed response")
+		return false, "", []string{}, 0, fmt.Errorf("Malformed response")
 	}
 	titles := make([]string, 0)
 	for _, value := range (query["pages"]).(map[string]interface{}) {
 		page := value.(map[string]interface{})
 
+		pageID := 0
+		if id, ok := page["pageid"]; ok {
+			pageID = int(id.(float64))
+		}
+
 		// handle when page is missing
 		if _, ok := page["missing"]; ok {
-			return true, "", []string{}, nil
+			return true, "", []string{}, 0, nil
 		}
 
 		description := ""
@@ -90,7 +96,7 @@ func parseResponse(response map[string]interface{}) (bool, string, []string, err
 		}
 
 		if _, ok := page["links"]; !ok {
-			return false, description, []string{}, nil
+			return false, description, []string{}, 0, nil
 		}
 
 		links := page["links"].([]interface{})
@@ -100,11 +106,12 @@ func parseResponse(response map[string]interface{}) (bool, string, []string, err
 			case string:
 				titles = append(titles, link["title"].(string))
 			default:
-				return true, "", []string{}, fmt.Errorf("Incorrect title in answer")
+				return true, "", []string{}, 0, fmt.Errorf("Incorrect title in answer")
 			}
 		}
-		return false, description, titles, nil
+
+		return false, description, titles, pageID, nil
 	}
 
-	return true, "", []string{}, fmt.Errorf("No page in answer")
+	return true, "", []string{}, 0, fmt.Errorf(" No page in answer")
 }

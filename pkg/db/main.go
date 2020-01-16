@@ -9,6 +9,7 @@ type Article struct {
 	LinkedArticles []Article `json:"linked_articles,omitempty"`
 	LastCrawled    string    `json:"last_crawled,omitempty"`
 	DType          []string  `json:"D_type,omitempty"`
+	PageID         int       `json:"page_id,omitempty"`
 }
 
 // DB is the interface to interact with a database
