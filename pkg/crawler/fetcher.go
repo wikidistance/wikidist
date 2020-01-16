@@ -23,7 +23,7 @@ func CrawlArticle(title string, prefix string) (db.Article, error) {
 	query.Add("prop", "links|description")
 	query.Add("pllimit", "500")
 	query.Add("plnamespace", "0")
-	query.Add("titles", url.QueryEscape(title))
+	query.Add("titles", title)
 
 	// TODO: Pagination logic
 	resp, err := http.Get(baseURL + "?" + query.Encode())
