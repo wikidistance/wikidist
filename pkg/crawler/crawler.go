@@ -12,9 +12,9 @@ import (
 )
 
 // ratio to nWorkers
-const queueSizeFactor = 200
+const queueSizeFactor = 400
 const resultQueueSizeFactor = 2
-const refillFactor = queueSizeFactor / 2
+const refillFactor = 3 * queueSizeFactor / 2
 
 // requests per minute
 const rateLimit = 3000
