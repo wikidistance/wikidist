@@ -162,7 +162,7 @@ func (dg *DGraph) AddVisited(article *Article) error {
 		CommitNow: true,
 	}
 	_, err = dg.client.NewTxn().Mutate(ctx, mu)
-	log.Println("Filled new article", article.Title, "with uid", uid)
+	log.Println("Filled new article", article.Title, "with uid", uid, "with mutation", string(pb))
 	log.Println("Created new article in", time.Since(start))
 
 	metrics.Statsd.Count("wikidist.links.created", int64(len(linkedArticles)), nil, 1)
