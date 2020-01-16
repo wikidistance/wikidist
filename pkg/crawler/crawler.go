@@ -2,6 +2,7 @@ package crawler
 
 import (
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -16,7 +17,7 @@ const resultQueueSizeFactor = 2
 const refillFactor = queueSizeFactor / 2
 
 // requests per minute
-const rateLimit = 3000
+const rateLimit = 100000
 
 type Crawler struct {
 	nWorkers   int
@@ -114,11 +115,8 @@ func (c *Crawler) addRegisterer() {
 		resultCopy := result
 
 		log.Println("Registering", result.Title, len(result.LinkedArticles), result.Missing)
-		start := time.Now()
 		c.database.AddVisited(&resultCopy)
-		log.Println("Completed AddVisited in", time.Since(start))
-		log.Println("Registered", result.Title)
-		metrics.Statsd.Count("wikidist.articles.registered", 1, nil, 1)
+		metrics.Statsd.Count("wikidist.articles.registered", 1, []string{"missing:" + strconv.FormatBool(result.Missing)}, 1)
 	}
 }
 
@@ -138,8 +136,6 @@ func (c *Crawler) addWorker() {
 
 		<-c.canMakeRequest
 
-		log.Println("Fetching", title)
-
 		article, err := CrawlArticle(title, c.prefix)
 
 		if err != nil {
@@ -154,7 +150,6 @@ func (c *Crawler) addWorker() {
 		}
 
 		c.results <- article
-		metrics.Statsd.Count("wikidist.articles.fetched", 1, nil, 1)
 	}
 }
 
