@@ -92,7 +92,6 @@ func (c *Crawler) refillQueue() {
 			}
 
 			var newTitles int64
-			metrics.Statsd.Count("wikidist.queue.returned_titles", int64(len(titles)), nil, 1)
 			for _, title := range titles {
 				if _, ok := c.seen.Get(title); ok {
 					continue
@@ -104,7 +103,6 @@ func (c *Crawler) refillQueue() {
 				newTitles++
 				c.queue <- title
 			}
-			metrics.Statsd.Count("wikidist.queue.new_titles", newTitles, nil, 1)
 		}
 	}
 }

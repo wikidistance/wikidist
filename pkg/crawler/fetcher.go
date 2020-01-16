@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/wikidistance/wikidist/pkg/db"
 	"github.com/wikidistance/wikidist/pkg/metrics"
@@ -20,9 +21,11 @@ func CrawlArticle(title string, prefix string) (db.Article, error) {
 	resp, err := http.Get(baseURL + "&titles=" + url.QueryEscape(title))
 	if err != nil {
 		log.Printf("Request failed for article %s: %w", title, err)
+		metrics.Statsd.Count("wikidist.requests", 1, []string{"state:hard_failure"}, 1)
 		return db.Article{}, err
 	}
 	defer resp.Body.Close()
+	metrics.Statsd.Count("wikidist.requests", 1, []string{"state:" + strconv.FormatInt(int64(resp.StatusCode), 10)}, 1)
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		log.Println("Request failed for article", title, ", status", resp.StatusCode)
 		return db.Article{}, fmt.Errorf("Rate limited")
@@ -38,10 +41,6 @@ func CrawlArticle(title string, prefix string) (db.Article, error) {
 	if err != nil {
 		log.Println("Error while fetching article", title, ":", err)
 		return db.Article{}, err
-	}
-
-	if missing {
-		metrics.Statsd.Count("wikidist.crawler.articles.missing", 1, nil, 1)
 	}
 
 	linkedArticles := make([]db.Article, 0, len(links))
