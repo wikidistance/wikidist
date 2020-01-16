@@ -162,6 +162,7 @@ func (dg *DGraph) AddVisited(article *Article) error {
 		CommitNow: true,
 	}
 	_, err = dg.client.NewTxn().Mutate(ctx, mu)
+	log.Println("Filled new article", article.Title, "with uid", uid)
 	log.Println("Created new article in", time.Since(start))
 
 	metrics.Statsd.Count("wikidist.links.created", int64(len(linkedArticles)), nil, 1)
@@ -216,6 +217,8 @@ func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, title st
 		}
 		uid = resp.Uids["article"]
 
+		log.Println("Created article", title, "with uid", uid, "with mutation", string(pb))
+
 		dg.cacheSave(title, uid)
 
 		return uid, nil
@@ -262,6 +265,7 @@ func (dg *DGraph) queryArticle(ctx context.Context, title string) (string, error
 	// check cache
 	if uid, ok := dg.cacheLookup(title); ok {
 		metrics.Statsd.Count("wikidist.uidcache.hit", 1, nil, 1)
+		log.Println("QueryArticle found", title, "in cache with uid", uid)
 		return uid, nil
 	}
 
@@ -269,6 +273,8 @@ func (dg *DGraph) queryArticle(ctx context.Context, title string) (string, error
 
 	r, err := dg.query(ctx, txn, q, map[string]string{"$title": title})
 	if err != nil {
+		log.Println("QueryArticle didn't find", title)
+
 		return "", err
 	}
 
@@ -278,6 +284,8 @@ func (dg *DGraph) queryArticle(ctx context.Context, title string) (string, error
 		}
 
 		uid := r["get"][0].UID
+
+		log.Println("QueryArticle found", title, "with uid", uid)
 
 		// save in cache
 		dg.cacheSave(title, uid)
