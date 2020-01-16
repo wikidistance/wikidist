@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -21,7 +20,7 @@ func main() {
 	log.Println(args)
 
 	if len(args) != 3 {
-		log.Println("Usage: crawler <prefix> <startUrl> <nWorkers>")
+		log.Println("Usage: crawler <prefix> <startTitle> <nWorkers>")
 		return
 	}
 
@@ -45,5 +44,5 @@ func main() {
 	signal.Notify(done, syscall.SIGINT, syscall.SIGTERM)
 
 	<-done
-	fmt.Println("exiting")
+	log.Println("exiting")
 }
