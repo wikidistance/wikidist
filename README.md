@@ -5,3 +5,11 @@
 ```sh
 docker-compose up -d
 ```
+
+### starting the server
+
+```sh
+cd cmd/api
+go build
+./api
+```
