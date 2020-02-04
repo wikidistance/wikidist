@@ -26,7 +26,6 @@ type DGraph struct {
 	cacheHits   int
 	cacheMisses int
 	offset      int
-
 	createGroup singleflight.Group
 }
 
@@ -356,15 +355,15 @@ func (dg *DGraph) ShortestPath(from string, to string) ([]Article, error) {
 		return nil, err
 	}
 
-	result := make(map[string][]Article, 0)
-
-	err = json.Unmarshal(resp.GetJson(), &result)
-
+	var decode struct {
+		Path []Article
+	}
+	err = json.Unmarshal(resp.GetJson(), &decode)
 	if err != nil {
 		return nil, err
 	}
 
-	return result["path"], nil
+	return decode.Path, nil
 }
 
 func GenerateSearchQuery(depth int) string {
@@ -409,4 +408,31 @@ func (dg *DGraph) SearchArticleByTitle(s string, depth int) ([]Article, error) {
 	}
 
 	return res["find_node_by_title"], nil
+}
+
+func (dg *DGraph) SearchArticleByUid(uid string, depth int) ([]Article, error) {
+	ctx := context.TODO()
+
+	q := fmt.Sprintf(`{
+		find_node_by_uid(func: uid(%s))
+		{
+		  %s
+		}
+	  }`, uid, GenerateSearchQuery(depth))
+
+	result, err := dg.client.NewTxn().Query(ctx, q)
+
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[string][]Article, 0)
+
+	err = json.Unmarshal(result.GetJson(), &res)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return res["find_node_by_uid"], nil
 }

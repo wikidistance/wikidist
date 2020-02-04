@@ -20,7 +20,9 @@ func main() {
 	http.HandleFunc("/", api.DefaultHandler)
 	http.HandleFunc("/shortest", dg.ShortestPathHandler)
 	http.HandleFunc("/search", dg.PageSearchHandler)
+	http.HandleFunc("/search-uid", dg.UidSearchHandler)
 
-	log.Println("APi is running on port 8081")
+	fmt.Println("API is running on port 8081")
+
 	log.Fatal(http.ListenAndServe(":8081", nil))
 }
