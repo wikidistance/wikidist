@@ -23,5 +23,6 @@ func main() {
 	http.HandleFunc("/search-uid", dg.UidSearchHandler)
 
 	fmt.Println("API is running on port 8081")
+
 	log.Fatal(http.ListenAndServe(":8081", nil))
 }

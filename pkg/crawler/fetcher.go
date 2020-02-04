@@ -1,103 +1,117 @@
 package crawler
 
 import (
+	"encoding/json"
 	"fmt"
-	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
-	s "strings"
-	"time"
+	"net/url"
+	"strconv"
 
 	"github.com/wikidistance/wikidist/pkg/db"
 	"github.com/wikidistance/wikidist/pkg/metrics"
-	"golang.org/x/net/html"
 )
 
-func CrawlArticle(url string) (db.Article, error) {
-	prefix := "https://fr.wikipedia.org"
+// CrawlArticle : Crawls an article given its title
+func CrawlArticle(title string, prefix string) (db.Article, error) {
+	baseURL := "https://" + prefix + ".wikipedia.org/w/api.php"
 
-	start := time.Now()
-	resp, err := http.Get(prefix + url)
-	elapsed := time.Since(start)
-	metrics.Statsd.Gauge("wikidist.fetcher.time", float64(elapsed.Milliseconds()), nil, 1)
+	query := url.Values{}
+	query.Set("format", "json")
+	query.Add("action", "query")
+	query.Add("prop", "links|description")
+	query.Add("pllimit", "500")
+	query.Add("plnamespace", "0")
+	query.Add("titles", title)
 
+	// TODO: Pagination logic
+	resp, err := http.Get(baseURL + "?" + query.Encode())
 	if err != nil {
-		return db.Article{}, fmt.Errorf("failed to fetch article %s: %w", url, err)
+		log.Printf("Request failed for article %s: %w", title, err)
+		metrics.Statsd.Count("wikidist.requests", 1, []string{"state:hard_failure"}, 1)
+		return db.Article{}, err
+	}
+	defer resp.Body.Close()
+	metrics.Statsd.Count("wikidist.requests", 1, []string{"state:" + strconv.FormatInt(int64(resp.StatusCode), 10)}, 1)
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		log.Println("Request failed for article", title, ", status", resp.StatusCode)
+		return db.Article{}, fmt.Errorf("Rate limited")
 	}
 
-	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
 
-	title, links := parsePage(url, resp.Body)
+	var result map[string]interface{}
+	json.Unmarshal(body, &result)
 
-	dedupedLinks := removeDuplicates(links)
+	missing, description, links, pageID, err := parseResponse(result)
 
-	// build neighbour Articles
-	linkedArticles := make([]db.Article, 0, len(dedupedLinks))
-	for _, link := range dedupedLinks {
-		neighbour := db.Article{URL: link}
-		linkedArticles = append(linkedArticles, neighbour)
+	if err != nil {
+		log.Println("Error while fetching article", title, ":", err)
+		return db.Article{}, err
+	}
 
+	linkedArticles := make([]db.Article, 0, len(links))
+	for _, link := range links {
+		linkedArticles = append(linkedArticles, db.Article{
+			Title: link,
+		})
 	}
 
 	return db.Article{
-		URL:            url,
 		Title:          title,
+		Description:    description,
+		Missing:        missing,
 		LinkedArticles: linkedArticles,
+		PageID:         pageID,
 	}, nil
 }
 
-func parsePage(url string, pageBody io.ReadCloser) (title string, links []string) {
-	z := html.NewTokenizer(pageBody)
+func parseResponse(response map[string]interface{}) (bool, string, []string, int, error) {
+	if _, ok := response["query"]; !ok {
+		return false, "", []string{}, 0, fmt.Errorf("Malformed response")
+	}
+	query := response["query"].(map[string]interface{})
 
-	titleIsNext := false
+	if _, ok := query["pages"]; !ok {
+		return false, "", []string{}, 0, fmt.Errorf("Malformed response")
+	}
+	titles := make([]string, 0)
+	for _, value := range (query["pages"]).(map[string]interface{}) {
+		page := value.(map[string]interface{})
 
-	for {
-		tt := z.Next()
-		if titleIsNext {
-			titleIsNext = false
-			title = string(z.Raw())
+		pageID := 0
+		if id, ok := page["pageid"]; ok {
+			pageID = int(id.(float64))
 		}
-		switch {
-		case tt == html.ErrorToken:
-			return
-		case tt == html.StartTagToken:
-			t := z.Token()
-			if t.Data == "a" {
-				for _, a := range t.Attr {
-					if a.Key != "href" {
-						continue
-					}
-					// Handle links to section: /path/to/doc#section
-					link := s.SplitN(a.Val, "#", 2)[0]
-					if isLinkToArticle(link) && url != link {
-						links = append(links, link)
-					}
-					break
-				}
-			}
-			if t.Data == "h1" {
-				for _, a := range t.Attr {
-					if a.Key == "id" && a.Val == "firstHeading" {
-						titleIsNext = true
-					}
-				}
+
+		// handle when page is missing
+		if _, ok := page["missing"]; ok {
+			return true, "", []string{}, 0, nil
+		}
+
+		description := ""
+		if desc, ok := page["description"]; ok {
+			description = desc.(string)
+		}
+
+		if _, ok := page["links"]; !ok {
+			return false, description, []string{}, 0, nil
+		}
+
+		links := page["links"].([]interface{})
+		for _, value := range links {
+			link := value.(map[string]interface{})
+			switch link["title"].(type) {
+			case string:
+				titles = append(titles, link["title"].(string))
+			default:
+				return true, "", []string{}, 0, fmt.Errorf("Incorrect title in answer")
 			}
 		}
-	}
-}
 
-func isLinkToArticle(link string) bool {
-	return s.HasPrefix(link, "/wiki/") && !s.Contains(link, ":") && link != "/wiki/Main_Page" && link != "/wiki/Pagina_maestra"
-}
-
-func removeDuplicates(links []string) (dedupedLinks []string) {
-	hashTable := make(map[string]bool)
-	for _, link := range links {
-		hashTable[link] = true
+		return false, description, titles, pageID, nil
 	}
 
-	for link := range hashTable {
-		dedupedLinks = append(dedupedLinks, link)
-	}
-
-	return
+	return true, "", []string{}, 0, fmt.Errorf(" No page in answer")
 }

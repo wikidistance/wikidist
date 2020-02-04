@@ -4,8 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"sync"
 	"time"
+
+	"golang.org/x/sync/singleflight"
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
@@ -23,6 +26,7 @@ type DGraph struct {
 	cacheHits   int
 	cacheMisses int
 	offset      int
+	createGroup singleflight.Group
 }
 
 // NewDGraph returns a new *DGraph
@@ -45,43 +49,81 @@ func NewDGraph() (*DGraph, error) {
 	op := &api.Operation{
 		Schema: `type Article {
 			title: string
-			url: string
+			description: string
+			missing: boolean
 			linked_articles: [Article]
 			last_crawled: dateTime
+			pageID: int
 		}
 
-		title: string @index(term, trigram, fulltext) @lang .
-		url: string @index(hash) @lang .
+		title: string @index(hash) @lang .
+		description: string @index(term) @lang .
 		last_crawled: dateTime @index(hour) .
+		missing: bool @index(bool) .
+		pageID: int @index(int) .
 		`,
 	}
 
 	err = dgraph.client.Alter(context.Background(), op)
 
+	go dgraph.checkDbConsistency()
+
 	return &dgraph, err
 }
 
-func (dg *DGraph) cacheLookup(url string) (uid string, ok bool) {
+func (db *DGraph) checkDbConsistency() {
+	for range time.Tick(15 * time.Minute) {
+		resp, err := db.client.NewReadOnlyTxn().BestEffort().Query(context.Background(), `
+		{
+			duplicate (func: has(title)) @groupby(title) @filter(gt(count, 1))  {
+			  count(uid)
+			}
+		  }`)
+		if err != nil {
+			continue
+		}
+
+		r := make(map[string][]map[string][]map[string]string)
+		err = json.Unmarshal(resp.Json, &r)
+		if err != nil {
+			continue
+		}
+
+		if result, ok := r["duplicate"]; !ok {
+			metrics.Statsd.SimpleServiceCheck("dgraph.consistency", 0)
+		} else {
+			metrics.Statsd.SimpleServiceCheck("dgraph.consistency", 2)
+
+			for _, duplicate := range result[0]["@groupby"] {
+				log.Println(duplicate["title"], "is duplicated in the db")
+			}
+		}
+
+	}
+}
+
+func (dg *DGraph) cacheLookup(title string) (uid string, ok bool) {
 	dg.cacheLock.Lock()
 	defer dg.cacheLock.Unlock()
 
-	uid, ok = dg.uidCache[url]
+	uid, ok = dg.uidCache[title]
 
 	return uid, ok
 }
 
-func (dg *DGraph) cacheSave(url string, uid string) {
+func (dg *DGraph) cacheSave(title string, uid string) {
 	dg.cacheLock.Lock()
 	defer dg.cacheLock.Unlock()
 
-	dg.uidCache[url] = uid
+	dg.uidCache[title] = uid
 }
 
 func (dg *DGraph) AddVisited(article *Article) error {
+
 	ctx := context.Background()
 
 	//get the uids of the linked articles
-	uids, err := dg.getOrCreate(ctx, article.LinkedArticles)
+	uids, err := dg.fetchArticles(ctx, article.LinkedArticles)
 	if err != nil {
 		return err
 	}
@@ -93,25 +135,20 @@ func (dg *DGraph) AddVisited(article *Article) error {
 			UID: uid,
 		})
 	}
-	article.LinkedArticles = linkedArticles
 
-	// query whether the article already exist
-	resp, err := dg.queryArticles(ctx, []Article{*article})
+	// remove the linked articles not to create duplicates
+	article.LinkedArticles = nil
+	uid, err := dg.getOrCreate(ctx, article.Title)
 	if err != nil {
 		return err
 	}
 
-	article.UID = "_:article"
+	// now that we know for sure the uid of the article, let's mutate it again
+	article.UID = uid
 	article.DType = []string{"Article"}
-
-	// use the real uid if the article is already created
-	if len(resp) > 0 {
-		article.UID = resp[0].UID
-	}
-
+	article.LinkedArticles = linkedArticles
 	article.LastCrawled = time.Now().Format("2006-01-02T15:04:05Z")
 
-	// update the article with all the new links
 	pb, err := json.Marshal(article)
 	if err != nil {
 		return err
@@ -122,50 +159,78 @@ func (dg *DGraph) AddVisited(article *Article) error {
 	}
 	_, err = dg.client.NewTxn().Mutate(ctx, mu)
 
+	metrics.Statsd.Count("wikidist.links.created", int64(len(linkedArticles)), nil, 1)
+
 	return err
 }
 
-func (dg *DGraph) getOrCreate(ctx context.Context, articles []Article) ([]string, error) {
-	uids := make([]string, 0, len(articles))
-
-	// get the already existing articles
-	existingArticles, err := dg.queryArticles(ctx, articles)
-	if err != nil {
-		return nil, err
-	}
-
-	existing := make(map[string]struct{})
-	for _, article := range existingArticles {
-		existing[article.URL] = struct{}{}
-		uids = append(uids, article.UID)
-	}
-
-	// create the non-existing articles
+// getOrCreate returns the uid of the article based on the Title whether created or already existing
+func (dg *DGraph) getOrCreate(ctx context.Context, title string) (string, error) {
 	txn := dg.client.NewTxn()
-	for _, article := range articles {
-		if _, ok := existing[article.URL]; ok {
-			continue
+	defer txn.Discard(ctx)
+	uid, err := dg.getOrCreateWithTxn(ctx, txn, title)
+	if err != nil {
+		return uid, err
+	}
+
+	txn.Commit(ctx)
+	return uid, err
+}
+
+func (dg *DGraph) getOrCreateWithTxn(ctx context.Context, txn *dgo.Txn, title string) (string, error) {
+	uid, err, _ := dg.createGroup.Do(title, func() (interface{}, error) {
+
+		uid, err := dg.queryArticle(ctx, title)
+		if err != nil {
+			return "", err
+		}
+		if uid != "" {
+			return uid, err
 		}
 
-		article.UID = "_:article"
-		article.DType = []string{"Article"}
-		article.LastCrawled = dummyDate
+		// Empty article to be created, with only the title
+		article := Article{
+			UID:         "_:article",
+			Title:       title,
+			DType:       []string{"Article"},
+			LastCrawled: dummyDate,
+		}
+
 		pb, err := json.Marshal(article)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 
 		mu := &api.Mutation{
 			SetJson: pb,
 		}
+
 		resp, err := txn.Mutate(ctx, mu)
+		if err != nil {
+			return "", err
+		}
+		uid = resp.Uids["article"]
+		dg.cacheSave(title, uid)
+
+		return uid, nil
+	})
+
+	return uid.(string), err
+}
+
+func (dg *DGraph) fetchArticles(ctx context.Context, articles []Article) ([]string, error) {
+	uids := make([]string, 0, len(articles))
+
+	txn := dg.client.NewTxn()
+	for _, article := range articles {
+		uid, err := dg.getOrCreateWithTxn(ctx, txn, article.Title)
 		if err != nil {
 			return nil, err
 		}
-
-		uids = append(uids, resp.Uids["article"])
+		uids = append(uids, uid)
 	}
-	err = txn.Commit(ctx)
+
+	err := txn.Commit(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -174,52 +239,47 @@ func (dg *DGraph) getOrCreate(ctx context.Context, articles []Article) ([]string
 
 }
 
-func (dg *DGraph) queryArticles(ctx context.Context, articles []Article) ([]Article, error) {
+func (dg *DGraph) queryArticle(ctx context.Context, title string) (string, error) {
 
 	txn := dg.client.NewReadOnlyTxn().BestEffort()
 	defer txn.Discard(ctx)
 
-	resp := make([]Article, 0, len(articles))
 	q := `
-	query Get($url: string) {
-		get(func: eq(url, $url)) {
+	query Get($title: string) {
+		get(func: eq(title, $title)) {
 			uid,
-			url,
 			title
 		}
 	}
 	`
 
-	for _, article := range articles {
-		// check cache
-		if uid, ok := dg.cacheLookup(article.URL); ok {
-			metrics.Statsd.Count("wikidist.uidcache.hit", 1, nil, 1)
-			resp = append(resp, Article{
-				UID: uid,
-				URL: article.URL,
-			})
-			continue
-		}
-
-		metrics.Statsd.Count("wikidist.uidcache.miss", 1, nil, 1)
-
-		r, err := dg.query(ctx, txn, q, map[string]string{"$url": article.URL})
-		if err != nil {
-			return nil, err
-		}
-
-		if len(r["get"]) > 0 {
-
-			resp = append(resp, r["get"][0])
-
-			// save in cache
-
-			dg.cacheSave(article.URL, r["get"][0].UID)
-		}
-
+	// check cache
+	if uid, ok := dg.cacheLookup(title); ok {
+		metrics.Statsd.Count("wikidist.uidcache.hit", 1, nil, 1)
+		return uid, nil
 	}
 
-	return resp, nil
+	metrics.Statsd.Count("wikidist.uidcache.miss", 1, nil, 1)
+
+	r, err := dg.query(ctx, txn, q, map[string]string{"$title": title})
+	if err != nil {
+		return "", err
+	}
+
+	if len(r["get"]) > 0 {
+		if len(r["get"]) > 1 {
+			panic(fmt.Sprintf("There shouldn't ever be more than one node with same Title: %s\n", title))
+		}
+
+		uid := r["get"][0].UID
+
+		// save in cache
+		dg.cacheSave(title, uid)
+
+		return uid, nil
+	}
+
+	return "", nil
 }
 
 func (dg *DGraph) query(ctx context.Context, txn *dgo.Txn, q string, vars map[string]string) (map[string][]Article, error) {
@@ -246,7 +306,6 @@ func (dg *DGraph) NextsToVisit(count int) ([]string, error) {
 	{
 		nodes(func: eq(last_crawled, "%s"), first: %d, offset: %d) {
 			uid
-			url
 			title
 		}
 	}
@@ -257,7 +316,7 @@ func (dg *DGraph) NextsToVisit(count int) ([]string, error) {
 
 	resp, err := txn.Query(ctx, query)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	var decode struct {
@@ -265,19 +324,16 @@ func (dg *DGraph) NextsToVisit(count int) ([]string, error) {
 	}
 
 	if err := json.Unmarshal(resp.GetJson(), &decode); err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
-	urls := make([]string, 0)
+	titles := make([]string, 0)
 
 	for _, node := range decode.Nodes {
-		urls = append(urls, node.URL)
-		if node.Title != "" {
-			fmt.Println("NextToVisit returned an already crawled article:", node.URL)
-		}
+		titles = append(titles, node.Title)
 	}
 
-	return urls, nil
+	return titles, nil
 }
 
 func (dg *DGraph) ShortestPath(from string, to string) ([]Article, error) {
@@ -289,7 +345,6 @@ func (dg *DGraph) ShortestPath(from string, to string) ([]Article, error) {
 		path(func: uid(path)) {
 			uid,
 			title,
-			url
 		}
 	}
 
@@ -315,14 +370,12 @@ func GenerateSearchQuery(depth int) string {
 	if depth == 0 {
 		return `
 			title
-			url
 			uid
 		`
 	}
 
 	return fmt.Sprintf(`
 		title
-		url
 		uid
 		linked_articles {
 			%s
