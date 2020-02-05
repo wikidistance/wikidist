@@ -1,5 +1,0 @@
-dist/
-.gitignore
-node_modules
-yarn.lock
-.vscode
