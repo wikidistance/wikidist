@@ -36,7 +36,7 @@ export async function fetchPath(
   try {
     const response = await axiosInstance.request({
       method: 'GET',
-      url: '/search-uid',
+      url: '/shortest',
       params: {
         from: uidSource,
         to: uidTarget,
@@ -60,7 +60,7 @@ export async function fetchArticleByTitle(
   try {
     const response = await axiosInstance.request({
       method: 'GET',
-      url: '/search-uid',
+      url: '/search',
       data: {
         Search: title,
         Depth: 1,
