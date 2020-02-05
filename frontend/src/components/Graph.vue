@@ -56,6 +56,15 @@ export default class Graph extends Vue {
         });
       }
     }
+    this.simulation.nodes(this.nodes).force('charge', forceManyBody())
+    .force(
+      'links',
+      forceLink(this.links)
+        .id(node => (node as ArticleNode).article.uid)
+        .distance(100)
+        .strength(1)
+    )
+    .force('center', forceCenter()).restart();
   }
 
   public get centerTranslate() {
