@@ -82,7 +82,7 @@ function treatArticle(article: Article, articles: Article[], links: ArticleLink[
   if (!articles.find(a => a.uid === article.uid)) {
     articles.push(article);
   }
-  if (article.linked_articles !== null) {
+  if (article.linked_articles !== null && article.linked_articles !== undefined) {
     for (const linkedArticle of article.linked_articles) {
       if (
         !links.find(
