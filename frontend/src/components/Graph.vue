@@ -56,13 +56,13 @@ export default class Graph extends Vue {
         });
       }
     }
-    this.simulation.nodes(this.nodes).force('charge', forceManyBody())
+    this.simulation.nodes(this.nodes).force('charge', forceManyBody().strength(100))
     .force(
       'links',
       forceLink(this.links)
         .id(node => (node as ArticleNode).article.uid)
         .distance(100)
-        .strength(1)
+        .strength(100)
     )
     .force('center', forceCenter()).restart();
   }
@@ -72,13 +72,13 @@ export default class Graph extends Vue {
   }
 
   private simulation: Simulation<ArticleNode, ArticleLink> = forceSimulation(this.nodes)
-    .force('charge', forceManyBody())
+    .force('charge', forceManyBody().strength(100))
     .force(
       'links',
       forceLink(this.links)
         .id(node => (node as ArticleNode).article.uid)
         .distance(100)
-        .strength(1)
+        .strength(100)
     )
     .force('center', forceCenter());
 }
