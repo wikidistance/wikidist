@@ -10,7 +10,7 @@ export async function fetchArticle(
 ): Promise<{ articles: Article[]; links: ArticleLink[] }> {
   try {
     const response = await axiosInstance.request({
-      method: 'GET',
+      method: 'POST',
       url: '/search-uid',
       data: {
         Search: uid,
@@ -59,7 +59,7 @@ export async function fetchArticleByTitle(
 ): Promise<{ articles: Article[]; links: ArticleLink[] }> {
   try {
     const response = await axiosInstance.request({
-      method: 'GET',
+      method: 'POST',
       url: '/search',
       data: {
         Search: title,
