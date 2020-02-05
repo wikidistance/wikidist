@@ -56,7 +56,7 @@ func NewDGraph() (*DGraph, error) {
 			pageID: int
 		}
 
-		title: string @index(hash) @lang .
+		title: string @index(hash, trigram) @lang .
 		description: string @index(term) @lang .
 		last_crawled: dateTime @index(hour) .
 		missing: bool @index(bool) .
