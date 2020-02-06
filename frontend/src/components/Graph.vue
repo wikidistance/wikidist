@@ -5,20 +5,25 @@
         <line
           v-for="(link, index) of links"
           :key="index"
-          stroke="black"
+          stroke="#75b1bf"
           stroke-width="2"
-          :x1="nodes[link.source.index].x * 5"
-          :y1="nodes[link.source.index].y * 5"
-          :x2="nodes[link.target.index].x * 5"
-          :y2="nodes[link.target.index].y * 5"
+          :x1="nodes[link.source.index].x * 20"
+          :y1="nodes[link.source.index].y * 20"
+          :x2="nodes[link.target.index].x * 20"
+          :y2="nodes[link.target.index].y * 20"
         />
         <g
           v-for="node of nodes"
           :key="node.article.uid"
-          :transform="`translate(${node.x * 5} ${node.y * 5})`"
+          :transform="`translate(${node.x * 20} ${node.y * 20})`"
         >
-          <circle r="10" fill="red"></circle>
-          <text x="15" font-size="0.8em">{{ node.article.title }}</text>
+          <circle r="10" fill="#f47370"></circle>
+          <a
+            :href="`https://simple.wikipedia.org/wiki/${node.article.title.replace(' ', '_')}`"
+            target="_blank"
+          >
+            <text x="15" font-size="0.8em">{{ node.article.title }}</text>
+          </a>
         </g>
       </g>
     </svg>
@@ -26,9 +31,9 @@
   </div>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
-import { forceManyBody, forceSimulation, Simulation, forceLink, forceCenter } from "d3-force";
-import { ArticleNode, ArticleLink, Article } from "@/types/article";
+import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
+import { forceManyBody, forceSimulation, Simulation, forceLink, forceCenter } from 'd3-force';
+import { ArticleNode, ArticleLink, Article } from '@/types/article';
 
 @Component
 export default class Graph extends Vue {
@@ -46,27 +51,40 @@ export default class Graph extends Vue {
     this.width = (this.$refs.svg as Element).clientWidth;
   }
 
-  updated() {
+  @Watch('articles')
+  public onArticleChange() {
+    this.updateNodes();
+  }
+
+  updateNodes() {
+    const newNodes: ArticleNode[] = [];
+    for (const node of this.nodes) {
+      if (this.articles.find(a => a.uid === node.article.uid)) {
+        newNodes.push(node);
+      }
+    }
+    this.nodes = newNodes;
+
     for (const article of this.articles) {
       if (!this.nodes.find(n => n.article.uid === article.uid)) {
         this.nodes.push({
           article,
           x: 0,
-          y: 0
+          y: 0,
         });
       }
     }
     this.simulation
       .nodes(this.nodes)
-      .force("charge", forceManyBody().strength(-5000))
+      .force('charge', forceManyBody().strength(-3000))
       .force(
-        "links",
+        'links',
         forceLink(this.links)
           .id(node => (node as ArticleNode).article.uid)
           .distance(100)
           .strength(100)
       )
-      .force("center", forceCenter())
+      .force('center', forceCenter())
       .restart();
   }
 
@@ -75,15 +93,15 @@ export default class Graph extends Vue {
   }
 
   private simulation: Simulation<ArticleNode, ArticleLink> = forceSimulation(this.nodes)
-    .force("charge", forceManyBody().strength(200))
+    .force('charge', forceManyBody().strength(-3000))
     .force(
-      "links",
+      'links',
       forceLink(this.links)
         .id(node => (node as ArticleNode).article.uid)
         .distance(200)
         .strength(200)
     )
-    .force("center", forceCenter());
+    .force('center', forceCenter());
 }
 </script>
 <style>

@@ -35,10 +35,10 @@ export default class App extends Vue {
     const target = await fetchArticleByTitle(args.target);
     if (source.articles.length > 0 && target.articles.length > 0) {
       const articles = await fetchPath(source.articles[0].uid, target.articles[0].uid);
+      this.loading = false;
       this.articles = articles.articles;
       this.links = articles.links;
     }
-    this.loading = false;
   }
 }
 </script>
