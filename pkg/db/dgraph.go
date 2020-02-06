@@ -345,6 +345,10 @@ func (dg *DGraph) ShortestPath(from string, to string) ([]Article, error) {
 		path(func: uid(path)) {
 			uid,
 			title,
+			linked_articles {
+				uid,
+				title
+			}
 		}
 	}
 
