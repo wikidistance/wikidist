@@ -27,6 +27,9 @@ export default class App extends Vue {
   private links: ArticleLink[] = [];
 
   public async onAction(args: { source: string; target: string }) {
+    this.articles = [];
+    this.links = [];
+
     this.loading = true;
     const source = await fetchArticleByTitle(args.source);
     const target = await fetchArticleByTitle(args.target);

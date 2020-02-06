@@ -35,8 +35,8 @@ export async function fetchPath(
 ): Promise<{ articles: Article[]; links: ArticleLink[] }> {
   try {
     const response = await axiosInstance.request({
-      method: 'GET',
-      url: '/shortest',
+      method: "GET",
+      url: "/shortest",
       params: {
         from: uidSource,
         to: uidTarget,
@@ -59,8 +59,8 @@ export async function fetchArticleByTitle(
 ): Promise<{ articles: Article[]; links: ArticleLink[] }> {
   try {
     const response = await axiosInstance.request({
-      method: 'POST',
-      url: '/search',
+      method: "POST",
+      url: "/search",
       data: {
         Search: title,
         Depth: 1,
