@@ -50,7 +50,7 @@ export default class Graph extends Vue {
     this.height = (this.$refs.svg as Element).clientHeight;
     this.width = (this.$refs.svg as Element).clientWidth;
   }
-
+  
   @Watch('articles')
   public onArticleChange() {
     this.updateNodes();

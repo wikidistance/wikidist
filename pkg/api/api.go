@@ -24,6 +24,11 @@ func DefaultHandler(w http.ResponseWriter, r *http.Request) {
 func (dg *DGraph) ShortestPathHandler(w http.ResponseWriter, r *http.Request) {
 	dg2 := (*db.DGraph)(dg)
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "*")
+	w.WriteHeader(http.StatusOK)
+
 	from, ok := r.URL.Query()["from"]
 	if !ok || len(from[0]) < 1 {
 		fmt.Fprint(w, "Need a from argument")
@@ -49,6 +54,9 @@ func (dg *DGraph) PageSearchHandler(w http.ResponseWriter, r *http.Request) {
 	var res []db.Article
 
 	w.Header().Set("Content-type", "application/json;charset=UTF-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "*")
 	w.WriteHeader(http.StatusOK)
 
 	reqBody, err := ioutil.ReadAll(r.Body)
@@ -75,6 +83,9 @@ func (dg *DGraph) UidSearchHandler(w http.ResponseWriter, r *http.Request) {
 	var res []db.Article
 
 	w.Header().Set("Content-type", "application/json;charset=UTF-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "*")
 	w.WriteHeader(http.StatusOK)
 
 	reqBody, err := ioutil.ReadAll(r.Body)
