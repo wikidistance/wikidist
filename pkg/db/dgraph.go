@@ -29,11 +29,17 @@ type DGraph struct {
 	createGroup singleflight.Group
 }
 
+type Config struct {
+	Host string `json:"dgraph-host"`
+	Port int    `json:"dgraph-port"`
+}
+
 // NewDGraph returns a new *DGraph
-func NewDGraph() (*DGraph, error) {
+func NewDGraph(config Config) (*DGraph, error) {
 	// Dial a gRPC connection. The address to dial to can be configured when
 	// setting up the dgraph cluster.
-	d, err := grpc.Dial("localhost:9080", grpc.WithInsecure())
+	dgraphUrl := fmt.Sprintf("%s:%d", config.Host, config.Port)
+	d, err := grpc.Dial(dgraphUrl, grpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}

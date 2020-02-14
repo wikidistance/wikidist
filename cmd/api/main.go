@@ -1,16 +1,37 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/wikidistance/wikidist/pkg/api"
 	"github.com/wikidistance/wikidist/pkg/db"
 )
 
 func main() {
-	d, err := db.NewDGraph()
+	// Get filename from args
+	filename := "../../config.json"
+	if len(os.Args) == 2 {
+		filename = os.Args[1]
+	}
+
+	// Get config from file
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatal("Couldn't open config file")
+	}
+
+	decoder := json.NewDecoder(file)
+	var config db.Config
+	err = decoder.Decode(&config)
+	if err != nil {
+		log.Fatal("Couldn't parse config file")
+	}
+
+	d, err := db.NewDGraph(config)
 	dg := (*api.DGraph)(d)
 
 	if err != nil {
