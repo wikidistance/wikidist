@@ -123,7 +123,7 @@ It returns the titles and uids of all the interim articles along the route.
 
 _Code located in [`frontend`](frontend)._
 
-TODO: technologies used, technical walkthrough...
+The front-end is implemented with the Vue.js framework. Graphs are rendered using d3.js.
 
 # Installation
 
