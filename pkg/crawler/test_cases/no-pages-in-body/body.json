@@ -1,0 +1,14 @@
+{
+    "continue": {
+        "plcontinue": "319884|0|\u00c9cole_sup\u00e9rieure_de_commerce_de_La_Rochelle",
+        "continue": "||description"
+    },
+    "query": {
+        "normalized": [
+            {
+                "from": "Grandes_\u00e9coles",
+                "to": "Grandes \u00e9coles"
+            }
+        ]
+    }
+}

@@ -1,0 +1,5 @@
+{
+    "TestShouldErr": true,
+    "MockShouldErr": false,
+    "HTTPStatusCode": 200
+}

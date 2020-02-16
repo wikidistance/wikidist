@@ -1,0 +1,1507 @@
+{
+ "title": "TEST_TITLE",
+ "description": "French institutions of higher education",
+ "linked_articles": [
+  {
+   "title": "Academic grading in France"
+  },
+  {
+   "title": "AgroParisTech"
+  },
+  {
+   "title": "Agro ParisTech"
+  },
+  {
+   "title": "Agrocampus Ouest"
+  },
+  {
+   "title": "Aix-Marseille University"
+  },
+  {
+   "title": "Anthropology"
+  },
+  {
+   "title": "Archaeology"
+  },
+  {
+   "title": "Architecture"
+  },
+  {
+   "title": "Artois University"
+  },
+  {
+   "title": "Arts et Métiers ParisTech"
+  },
+  {
+   "title": "Audencia Business School"
+  },
+  {
+   "title": "Baccalauréat"
+  },
+  {
+   "title": "Biarritz"
+  },
+  {
+   "title": "Biology"
+  },
+  {
+   "title": "Blaise Pascal University"
+  },
+  {
+   "title": "Blois"
+  },
+  {
+   "title": "Bordeaux"
+  },
+  {
+   "title": "Bordeaux Montaigne University"
+  },
+  {
+   "title": "Bordeaux Segalen University"
+  },
+  {
+   "title": "Bourges"
+  },
+  {
+   "title": "Brest, France"
+  },
+  {
+   "title": "Burgundy School of Business"
+  },
+  {
+   "title": "Business schools"
+  },
+  {
+   "title": "CELSA Paris"
+  },
+  {
+   "title": "CY Cergy Paris University"
+  },
+  {
+   "title": "Cachan"
+  },
+  {
+   "title": "Casa de Velázquez"
+  },
+  {
+   "title": "CentraleSupélec"
+  },
+  {
+   "title": "Centrale Graduate School"
+  },
+  {
+   "title": "Centre-Val de Loire"
+  },
+  {
+   "title": "Centre des études supérieures industrielles"
+  },
+  {
+   "title": "Centre international d'études supérieures en sciences agronomiques"
+  },
+  {
+   "title": "Cergy-Pontoise University"
+  },
+  {
+   "title": "Chamber of commerce"
+  },
+  {
+   "title": "Charles Étienne Louis Camus"
+  },
+  {
+   "title": "Charleville-Mézières"
+  },
+  {
+   "title": "Chemistry"
+  },
+  {
+   "title": "Chimie ParisTech"
+  },
+  {
+   "title": "Classe préparatoire aux Grandes Écoles"
+  },
+  {
+   "title": "Classe préparatoire aux grandes écoles"
+  },
+  {
+   "title": "Classes préparatoires aux grandes écoles"
+  },
+  {
+   "title": "Claude Bernard University Lyon 1"
+  },
+  {
+   "title": "Collège de France"
+  },
+  {
+   "title": "Comité d'études sur les formations d'ingénieurs"
+  },
+  {
+   "title": "Commission des Titres d'Ingénieur"
+  },
+  {
+   "title": "Commission des titres d'ingénieur"
+  },
+  {
+   "title": "Communauté d'universités et établissements Centre-Val de Loire"
+  },
+  {
+   "title": "Communities of universities and institutions"
+  },
+  {
+   "title": "Community Université Grenoble Alpes"
+  },
+  {
+   "title": "Community of universities and higher education institutions of Aquitaine"
+  },
+  {
+   "title": "Conférence des Grandes écoles"
+  },
+  {
+   "title": "Conférence des directeurs des écoles françaises d'ingénieurs (CDEFI)"
+  },
+  {
+   "title": "Conférence des grandes écoles"
+  },
+  {
+   "title": "Conférence des grandes écoles (CGE)"
+  },
+  {
+   "title": "Conservatoire National des Arts et Métiers"
+  },
+  {
+   "title": "Conservatoire national des arts et métiers"
+  },
+  {
+   "title": "Coëtquidan"
+  },
+  {
+   "title": "Diplôme d'ingénieur"
+  },
+  {
+   "title": "ECE Paris"
+  },
+  {
+   "title": "EDC Paris Business School"
+  },
+  {
+   "title": "EDHEC"
+  },
+  {
+   "title": "EDHEC Business School"
+  },
+  {
+   "title": "EEIGM, the European School of Materials Sciences and Engineering"
+  },
+  {
+   "title": "EFREI"
+  },
+  {
+   "title": "EHESP"
+  },
+  {
+   "title": "EISTI"
+  },
+  {
+   "title": "EMLYON Business School"
+  },
+  {
+   "title": "EM Strasbourg Business School"
+  },
+  {
+   "title": "ENISE"
+  },
+  {
+   "title": "ENSAE ParisTech"
+  },
+  {
+   "title": "ENSAIT"
+  },
+  {
+   "title": "ENSEA"
+  },
+  {
+   "title": "ENSIACET"
+  },
+  {
+   "title": "ENSIMAG"
+  },
+  {
+   "title": "ENSTA ParisTech"
+  },
+  {
+   "title": "EPITA"
+  },
+  {
+   "title": "ESCP Europe"
+  },
+  {
+   "title": "ESDES"
+  },
+  {
+   "title": "ESIEA (university)"
+  },
+  {
+   "title": "ESIEE Amiens"
+  },
+  {
+   "title": "ESIEE Management"
+  },
+  {
+   "title": "ESIEE Paris"
+  },
+  {
+   "title": "ESIGELEC"
+  },
+  {
+   "title": "ESIGETEL"
+  },
+  {
+   "title": "ESIL"
+  },
+  {
+   "title": "ESIR"
+  },
+  {
+   "title": "ESIREM"
+  },
+  {
+   "title": "ESISAR"
+  },
+  {
+   "title": "ESME Sudria"
+  },
+  {
+   "title": "ESPCI ParisTech"
+  },
+  {
+   "title": "ESSEC"
+  },
+  {
+   "title": "ESSEC Business School"
+  },
+  {
+   "title": "ESTACA"
+  },
+  {
+   "title": "ESTIA Institute of Technology"
+  },
+  {
+   "title": "Ecole Nationale Superieure des Sciences de l'information et des Bibliotheques"
+  },
+  {
+   "title": "Ecole Nationale d'Ingénieurs"
+  },
+  {
+   "title": "Ecole Polytechnique"
+  },
+  {
+   "title": "Ecole des ingenieurs de la Ville de Paris"
+  },
+  {
+   "title": "Ecole et Observatoire des Sciences de la Terre"
+  },
+  {
+   "title": "Ecole nationale du génie de l'eau et de l'environnement de Strasbourg"
+  },
+  {
+   "title": "Economics"
+  },
+  {
+   "title": "Education in France"
+  },
+  {
+   "title": "Ense3"
+  },
+  {
+   "title": "European Business School Paris"
+  },
+  {
+   "title": "European Economic Area"
+  },
+  {
+   "title": "European Union"
+  },
+  {
+   "title": "Experimental institutions"
+  },
+  {
+   "title": "Federal University of Toulouse Midi-Pyrénées"
+  },
+  {
+   "title": "Fields Medal"
+  },
+  {
+   "title": "Financial Times"
+  },
+  {
+   "title": "Fine arts"
+  },
+  {
+   "title": "France"
+  },
+  {
+   "title": "François Rabelais University"
+  },
+  {
+   "title": "French National School of Forestry"
+  },
+  {
+   "title": "French Revolution"
+  },
+  {
+   "title": "French School at Athens"
+  },
+  {
+   "title": "Gaspard Monge"
+  },
+  {
+   "title": "Geology"
+  },
+  {
+   "title": "Grand établissement"
+  },
+  {
+   "title": "Grande École (film)"
+  },
+  {
+   "title": "Grands établissements"
+  },
+  {
+   "title": "Grenoble"
+  },
+  {
+   "title": "Grenoble INP"
+  },
+  {
+   "title": "Grenoble Institute of Technology"
+  },
+  {
+   "title": "Grenoble School of Management"
+  },
+  {
+   "title": "Gustave Eiffel University"
+  },
+  {
+   "title": "HEC Paris"
+  },
+  {
+   "title": "Hautes études d'ingénieur"
+  },
+  {
+   "title": "Henri Grégoire"
+  },
+  {
+   "title": "Henri Poincaré University"
+  },
+  {
+   "title": "Hesam Université"
+  },
+  {
+   "title": "Higher education"
+  },
+  {
+   "title": "History"
+  },
+  {
+   "title": "History of art"
+  },
+  {
+   "title": "Humanities"
+  },
+  {
+   "title": "ICN Business School"
+  },
+  {
+   "title": "IESEG School of Management"
+  },
+  {
+   "title": "IMT Atlantique"
+  },
+  {
+   "title": "INPG"
+  },
+  {
+   "title": "INSA Centre Val de Loire"
+  },
+  {
+   "title": "INSA Lyon"
+  },
+  {
+   "title": "INSA Rennes"
+  },
+  {
+   "title": "INSA Rouen"
+  },
+  {
+   "title": "INSA Strasbourg"
+  },
+  {
+   "title": "INSA Toulouse"
+  },
+  {
+   "title": "INSEAD"
+  },
+  {
+   "title": "INSEEC Business School"
+  },
+  {
+   "title": "IPAG Business School"
+  },
+  {
+   "title": "IPE Management School Paris"
+  },
+  {
+   "title": "ISEN"
+  },
+  {
+   "title": "ISG Business School"
+  },
+  {
+   "title": "ISTY"
+  },
+  {
+   "title": "Industrial revolution"
+  },
+  {
+   "title": "Insee"
+  },
+  {
+   "title": "Institut Eurécom"
+  },
+  {
+   "title": "Institut Français d'Archéologie Orientale"
+  },
+  {
+   "title": "Institut Français de Mécanique avancée"
+  },
+  {
+   "title": "Institut Mines-Telecom"
+  },
+  {
+   "title": "Institut Mines-Télécom"
+  },
+  {
+   "title": "Institut National Polytechnique de Lorraine"
+  },
+  {
+   "title": "Institut National des Sciences Appliquées"
+  },
+  {
+   "title": "Institut National des Sciences Appliquées de Rennes"
+  },
+  {
+   "title": "Institut National des Sciences Appliquées de Rouen"
+  },
+  {
+   "title": "Institut National des Sciences Appliquées de Toulouse"
+  },
+  {
+   "title": "Institut Supérieur de l'Aéronautique et de l'Espace"
+  },
+  {
+   "title": "Institut d'Optique Graduate School"
+  },
+  {
+   "title": "Institut d'études politiques"
+  },
+  {
+   "title": "Institut d'études politiques de Bordeaux"
+  },
+  {
+   "title": "Institut d'études politiques de Rennes"
+  },
+  {
+   "title": "Institut d'études politiques de Strasbourg"
+  },
+  {
+   "title": "Institut d'études politiques de Toulouse"
+  },
+  {
+   "title": "Institut de Physique du Globe de Paris"
+  },
+  {
+   "title": "Institut de Science Financiere et d'Assurances"
+  },
+  {
+   "title": "Institut des sciences de l'ingénieur de Toulon et du Var"
+  },
+  {
+   "title": "Institut national agronomique Paris Grignon"
+  },
+  {
+   "title": "Institut national d'histoire de l'art"
+  },
+  {
+   "title": "Institut national des langues et civilisations orientales"
+  },
+  {
+   "title": "Institut national des sciences appliquées"
+  },
+  {
+   "title": "Institut national des sciences appliquées de Lyon"
+  },
+  {
+   "title": "Institut national des sciences appliquées de Rennes"
+  },
+  {
+   "title": "Institut national des sciences appliquées de Rouen"
+  },
+  {
+   "title": "Institut national des sciences appliquées de Strasbourg"
+  },
+  {
+   "title": "Institut national des sciences appliquées de Toulouse"
+  },
+  {
+   "title": "Institut national du sport, de l'expertise et de la performance"
+  },
+  {
+   "title": "Institut national supérieur des sciences agronomiques, de l'alimentation et de l'environnement"
+  },
+  {
+   "title": "Institut polytechnique de Grenoble"
+  },
+  {
+   "title": "Institut polytechnique de Paris"
+  },
+  {
+   "title": "Institut supérieur d'informatique, de modélisation et de leurs applications"
+  },
+  {
+   "title": "Institut supérieur d'électronique de Paris"
+  },
+  {
+   "title": "Institut supérieur de l'aéronautique et de l'espace"
+  },
+  {
+   "title": "Institut supérieur de l'électronique et du numérique"
+  },
+  {
+   "title": "Institut supérieur des matériaux et mécaniques avancées"
+  },
+  {
+   "title": "Institut supérieur des sciences agronomiques, agroalimentaires, horticoles et du paysage"
+  },
+  {
+   "title": "Institut supérieur du commerce de Paris"
+  },
+  {
+   "title": "Instituts nationaux des sciences appliquées"
+  },
+  {
+   "title": "Instituts polytechniques"
+  },
+  {
+   "title": "Integrated Authority File"
+  },
+  {
+   "title": "International Standard Book Number"
+  },
+  {
+   "title": "Jean-François Champollion University Center for Teaching and Research"
+  },
+  {
+   "title": "Jean Monnet University"
+  },
+  {
+   "title": "Jean Moulin University Lyon 3"
+  },
+  {
+   "title": "Joseph Fourier University"
+  },
+  {
+   "title": "Judiciary of France"
+  },
+  {
+   "title": "KEDGE Business School"
+  },
+  {
+   "title": "L'Usine nouvelle"
+  },
+  {
+   "title": "L'École Nationale Supérieure d'Horticulture"
+  },
+  {
+   "title": "Language"
+  },
+  {
+   "title": "Languedoc-Roussillon Universities"
+  },
+  {
+   "title": "Lazare Nicolas Marguerite Carnot"
+  },
+  {
+   "title": "Leonardo da Vinci consolidated University"
+  },
+  {
+   "title": "Licence-Master-Doctorat"
+  },
+  {
+   "title": "List of colleges and universities in France"
+  },
+  {
+   "title": "List of public universities in France"
+  },
+  {
+   "title": "List of public universities in France by academy"
+  },
+  {
+   "title": "List of universities in France"
+  },
+  {
+   "title": "List of École Normale Supérieure people"
+  },
+  {
+   "title": "Lumière University Lyon 2"
+  },
+  {
+   "title": "Lycée Louis-le-Grand"
+  },
+  {
+   "title": "Lyon"
+  },
+  {
+   "title": "MINES ParisTech"
+  },
+  {
+   "title": "Magistrate"
+  },
+  {
+   "title": "Master of Business Administration"
+  },
+  {
+   "title": "Mathematician"
+  },
+  {
+   "title": "Mathematics"
+  },
+  {
+   "title": "Michael Postan"
+  },
+  {
+   "title": "Military academies"
+  },
+  {
+   "title": "Military academy"
+  },
+  {
+   "title": "Mines ParisTech"
+  },
+  {
+   "title": "Ministry of Defence (France)"
+  },
+  {
+   "title": "Montesquieu University - Bordeaux IV"
+  },
+  {
+   "title": "Montesquieu University – Bordeaux IV"
+  },
+  {
+   "title": "Montpellier"
+  },
+  {
+   "title": "Montpellier 2 University"
+  },
+  {
+   "title": "Montpellier Business School"
+  },
+  {
+   "title": "Muséum national d'histoire naturelle"
+  },
+  {
+   "title": "NEOMA Business School"
+  },
+  {
+   "title": "Nancy 2 University"
+  },
+  {
+   "title": "National Convention"
+  },
+  {
+   "title": "National Museum of Natural History (France)"
+  },
+  {
+   "title": "National Polytechnic Institute of Lorraine"
+  },
+  {
+   "title": "National Polytechnic Institute of Toulouse"
+  },
+  {
+   "title": "Nobel Prize"
+  },
+  {
+   "title": "Normandy University"
+  },
+  {
+   "title": "Observatoire de Paris"
+  },
+  {
+   "title": "PSB Paris School of Business"
+  },
+  {
+   "title": "Pagora"
+  },
+  {
+   "title": "Palais de la Découverte"
+  },
+  {
+   "title": "Pantheon-Sorbonne University"
+  },
+  {
+   "title": "Panthéon-Assas University"
+  },
+  {
+   "title": "Paris"
+  },
+  {
+   "title": "Paris-Dauphine University"
+  },
+  {
+   "title": "Paris-Saclay University"
+  },
+  {
+   "title": "Paris-Sud 11 University"
+  },
+  {
+   "title": "ParisTech"
+  },
+  {
+   "title": "Paris 12 Val de Marne University"
+  },
+  {
+   "title": "Paris 13 University"
+  },
+  {
+   "title": "Paris 8 University"
+  },
+  {
+   "title": "Paris Dauphine University"
+  },
+  {
+   "title": "Paris Descartes University"
+  },
+  {
+   "title": "Paris Diderot University"
+  },
+  {
+   "title": "Paris Institute of Statistics"
+  },
+  {
+   "title": "Paris Observatory"
+  },
+  {
+   "title": "Paris West University Nanterre La Défense"
+  },
+  {
+   "title": "Paris X University Nanterre"
+  },
+  {
+   "title": "Paul Sabatier University"
+  },
+  {
+   "title": "Paul Valéry University, Montpellier III"
+  },
+  {
+   "title": "Paul Verlaine University - Metz"
+  },
+  {
+   "title": "Peter Mathias"
+  },
+  {
+   "title": "Phelma"
+  },
+  {
+   "title": "Physics"
+  },
+  {
+   "title": "Pierre-Simon Laplace"
+  },
+  {
+   "title": "Pierre Mendès-France University"
+  },
+  {
+   "title": "Piston engine"
+  },
+  {
+   "title": "Polytech Group (France)"
+  },
+  {
+   "title": "Polytechnic University of Hauts-de-France"
+  },
+  {
+   "title": "Professor"
+  },
+  {
+   "title": "Public service"
+  },
+  {
+   "title": "Rennes"
+  },
+  {
+   "title": "Researcher"
+  },
+  {
+   "title": "Roman Historical Institutes"
+  },
+  {
+   "title": "Rouen Business School"
+  },
+  {
+   "title": "Saint-Cyr-l'École"
+  },
+  {
+   "title": "Salon-de-Provence"
+  },
+  {
+   "title": "School for Advanced Studies in the Social Sciences"
+  },
+  {
+   "title": "School of Applied Artillery (France)"
+  },
+  {
+   "title": "Sciences Po"
+  },
+  {
+   "title": "Sciences Po Aix"
+  },
+  {
+   "title": "Sciences Po Grenoble"
+  },
+  {
+   "title": "Sciences Po Lille"
+  },
+  {
+   "title": "Sciences Po Lyon"
+  },
+  {
+   "title": "Sciences Po Paris"
+  },
+  {
+   "title": "Sciences Po Saint-Germain-en-Laye"
+  },
+  {
+   "title": "Siméon Denis Poisson"
+  },
+  {
+   "title": "Skema Business School"
+  },
+  {
+   "title": "Sorbonne Paris Cité University (group)"
+  },
+  {
+   "title": "Sorbonne University"
+  },
+  {
+   "title": "Stendhal University"
+  },
+  {
+   "title": "Strasbourg"
+  },
+  {
+   "title": "SupAgro"
+  },
+  {
+   "title": "Supaero"
+  },
+  {
+   "title": "Supmeca"
+  },
+  {
+   "title": "Supméca"
+  },
+  {
+   "title": "Supélec"
+  },
+  {
+   "title": "Sylvestre-François Lacroix"
+  },
+  {
+   "title": "Technology"
+  },
+  {
+   "title": "Telecom \u0026 Management SudParis"
+  },
+  {
+   "title": "Telecom Business School"
+  },
+  {
+   "title": "Telecom Nancy"
+  },
+  {
+   "title": "Telecom SudParis"
+  },
+  {
+   "title": "Toulouse"
+  },
+  {
+   "title": "Toulouse 1 University Capitole"
+  },
+  {
+   "title": "Toulouse 1 University Social Sciences"
+  },
+  {
+   "title": "Toulouse Business School"
+  },
+  {
+   "title": "Télécom Bretagne"
+  },
+  {
+   "title": "Télécom ParisTech"
+  },
+  {
+   "title": "Télécom Physique Strasbourg"
+  },
+  {
+   "title": "Télécom Saint-Étienne"
+  },
+  {
+   "title": "University Bordeaux Montaigne"
+  },
+  {
+   "title": "University Clermont Auvergne"
+  },
+  {
+   "title": "University of Angers"
+  },
+  {
+   "title": "University of Auvergne"
+  },
+  {
+   "title": "University of Avignon"
+  },
+  {
+   "title": "University of Bordeaux"
+  },
+  {
+   "title": "University of Bordeaux 1"
+  },
+  {
+   "title": "University of Burgundy"
+  },
+  {
+   "title": "University of Burgundy - Franche-Comté"
+  },
+  {
+   "title": "University of Caen Lower Normandy"
+  },
+  {
+   "title": "University of Caen Normandy"
+  },
+  {
+   "title": "University of Corsica Pascal Paoli"
+  },
+  {
+   "title": "University of Corsica Pasquale Paoli"
+  },
+  {
+   "title": "University of Côte d'Azur"
+  },
+  {
+   "title": "University of Franche-Comté"
+  },
+  {
+   "title": "University of French Guiana"
+  },
+  {
+   "title": "University of French Polynesia"
+  },
+  {
+   "title": "University of La Rochelle"
+  },
+  {
+   "title": "University of La Réunion"
+  },
+  {
+   "title": "University of Le Havre"
+  },
+  {
+   "title": "University of Lille"
+  },
+  {
+   "title": "University of Lille Nord de France"
+  },
+  {
+   "title": "University of Limoges"
+  },
+  {
+   "title": "University of Lorraine"
+  },
+  {
+   "title": "University of Lyon"
+  },
+  {
+   "title": "University of Maine (France)"
+  },
+  {
+   "title": "University of Marne-la-Vallée"
+  },
+  {
+   "title": "University of Marne la Vallée"
+  },
+  {
+   "title": "University of Montpellier 1"
+  },
+  {
+   "title": "University of Nantes"
+  },
+  {
+   "title": "University of New Caledonia"
+  },
+  {
+   "title": "University of Nice Sophia Antipolis"
+  },
+  {
+   "title": "University of Nîmes"
+  },
+  {
+   "title": "University of Orléans"
+  },
+  {
+   "title": "University of Paris"
+  },
+  {
+   "title": "University of Paris-Est"
+  },
+  {
+   "title": "University of Paris-Saclay"
+  },
+  {
+   "title": "University of Paris-Sud"
+  },
+  {
+   "title": "University of Paris (2019)"
+  },
+  {
+   "title": "University of Paris 1 Pantheon-Sorbonne"
+  },
+  {
+   "title": "University of Paris III: Sorbonne Nouvelle"
+  },
+  {
+   "title": "University of Pau and Pays de l'Adour"
+  },
+  {
+   "title": "University of Perpignan"
+  },
+  {
+   "title": "University of Perpignan Via Domitia"
+  },
+  {
+   "title": "University of Picardie Jules Verne"
+  },
+  {
+   "title": "University of Poitiers"
+  },
+  {
+   "title": "University of Reims Champagne-Ardenne"
+  },
+  {
+   "title": "University of Rennes 1"
+  },
+  {
+   "title": "University of Rennes 2 - Upper Brittany"
+  },
+  {
+   "title": "University of Rennes 2 – Upper Brittany"
+  },
+  {
+   "title": "University of Rouen"
+  },
+  {
+   "title": "University of Savoie"
+  },
+  {
+   "title": "University of Savoy"
+  },
+  {
+   "title": "University of Southern Brittany"
+  },
+  {
+   "title": "University of Strasbourg"
+  },
+  {
+   "title": "University of Technology of Compiegne"
+  },
+  {
+   "title": "University of Technology of Compiègne"
+  },
+  {
+   "title": "University of Technology of Troyes"
+  },
+  {
+   "title": "University of Toulon"
+  },
+  {
+   "title": "University of Toulouse-Jean Jaurès"
+  },
+  {
+   "title": "University of Toulouse II - Le Mirail"
+  },
+  {
+   "title": "University of Upper Alsace"
+  },
+  {
+   "title": "University of Valenciennes and Hainaut-Cambresis"
+  },
+  {
+   "title": "University of Western Brittany"
+  },
+  {
+   "title": "University of the French West Indies and Guiana"
+  },
+  {
+   "title": "University of the Littoral Opal Coast"
+  },
+  {
+   "title": "University of the South, Toulon-Var"
+  },
+  {
+   "title": "University of Évry Val d'Essonne"
+  },
+  {
+   "title": "Université Bretagne-Loire"
+  },
+  {
+   "title": "Université Côte d'Azur"
+  },
+  {
+   "title": "Université Paris-Dauphine"
+  },
+  {
+   "title": "Université Paris Lumières"
+  },
+  {
+   "title": "Université Paris Sciences et Lettres"
+  },
+  {
+   "title": "Université de Technologie"
+  },
+  {
+   "title": "Université de technologie de Belfort-Montbéliard"
+  },
+  {
+   "title": "Université de technologie de Compiègne"
+  },
+  {
+   "title": "Universités de technologie"
+  },
+  {
+   "title": "Upper Alsace University"
+  },
+  {
+   "title": "Versailles Saint-Quentin-en-Yvelines University"
+  },
+  {
+   "title": "VetAgro Sup"
+  },
+  {
+   "title": "Villa Arson"
+  },
+  {
+   "title": "Wayback Machine"
+  },
+  {
+   "title": "École Centrale Paris"
+  },
+  {
+   "title": "École Internationale des Sciences du Traitement de l'Information"
+  },
+  {
+   "title": "École Nationale Supérieure d'Agronomie et des Industries Alimentaires (ENSAIA, the National School of Agronomy and Food Sciences)"
+  },
+  {
+   "title": "École Nationale Supérieure d'Architecture de Nancy (ENSA Nancy, the School of Architecture)"
+  },
+  {
+   "title": "École Nationale Supérieure d'Architecture de Versailles"
+  },
+  {
+   "title": "École Nationale Supérieure d'Ingénieurs en Génie des Systèmes Industriels"
+  },
+  {
+   "title": "École Nationale Supérieure d'Ingénieurs en Informatique Automatique Mécanique Énergétique Électronique"
+  },
+  {
+   "title": "École Nationale Supérieure d'Électricité et de Mécanique (ENSEM, the National School of Electricity and Mechanics)"
+  },
+  {
+   "title": "École Nationale Supérieure de Chimie de Montpellier"
+  },
+  {
+   "title": "École Nationale Supérieure de Création Industrielle"
+  },
+  {
+   "title": "École Nationale Supérieure de Géologie"
+  },
+  {
+   "title": "École Nationale Supérieure de Mécanique et des Microtechniques"
+  },
+  {
+   "title": "École Nationale Supérieure des Arts Décoratifs"
+  },
+  {
+   "title": "École Nationale Supérieure des Beaux-Arts"
+  },
+  {
+   "title": "École Nationale Supérieure des Industries Chimiques (ENSIC, the National School of Chemical Industries)"
+  },
+  {
+   "title": "École Nationale Supérieure des Mines de Nancy"
+  },
+  {
+   "title": "École Nationale Supérieure des Mines de Nancy (ENSMN, the National School of Mines of Nancy)"
+  },
+  {
+   "title": "École Nationale Supérieure des Mines de Rabat"
+  },
+  {
+   "title": "École Nationale Supérieure des Mines de Saint-Étienne"
+  },
+  {
+   "title": "École Nationale Supérieure en Génie des Systèmes Industriels (ENSGSI, the National School of Industrial Systems Engineering)"
+  },
+  {
+   "title": "École Nationale d'Administration"
+  },
+  {
+   "title": "École Nationale d'Ingénieurs de Metz"
+  },
+  {
+   "title": "École Nationale d'Ingénieurs de Tarbes"
+  },
+  {
+   "title": "École Nationale de la Magistrature"
+  },
+  {
+   "title": "École Nationale des Chartes"
+  },
+  {
+   "title": "École Nationale des Travaux Publics de l'État"
+  },
+  {
+   "title": "École Navale"
+  },
+  {
+   "title": "École Normale Supérieure"
+  },
+  {
+   "title": "École Normale Supérieure Lettres et Sciences Humaines"
+  },
+  {
+   "title": "École Normale Supérieure de Cachan"
+  },
+  {
+   "title": "École Normale Supérieure de Lyon"
+  },
+  {
+   "title": "École Normale Supérieure de Rennes"
+  },
+  {
+   "title": "École Polytechnique"
+  },
+  {
+   "title": "École Spéciale Militaire de Saint-Cyr"
+  },
+  {
+   "title": "École Supérieure d'Électronique de l'Ouest"
+  },
+  {
+   "title": "École Supérieure des Techniques Aéronautiques et de Construction Automobile"
+  },
+  {
+   "title": "École catholique des arts et métiers"
+  },
+  {
+   "title": "École centrale Paris"
+  },
+  {
+   "title": "École centrale de Lille"
+  },
+  {
+   "title": "École centrale de Lyon"
+  },
+  {
+   "title": "École centrale de Marseille"
+  },
+  {
+   "title": "École centrale de Nantes"
+  },
+  {
+   "title": "École d'ingénieurs de Purpan"
+  },
+  {
+   "title": "École d'électricité, de production et des méthodes industrielles"
+  },
+  {
+   "title": "École de Biologie Industrielle"
+  },
+  {
+   "title": "École de l'Air"
+  },
+  {
+   "title": "École de management de Normandie"
+  },
+  {
+   "title": "École des Hautes Etudes en Sciences Sociales"
+  },
+  {
+   "title": "École des Mines d'Albi-Carmaux"
+  },
+  {
+   "title": "École des Mines de Douai"
+  },
+  {
+   "title": "École des Ponts ParisTech"
+  },
+  {
+   "title": "École des arts industriels et des mines"
+  },
+  {
+   "title": "École des hautes études en sciences sociales"
+  },
+  {
+   "title": "École des mines d'Alès"
+  },
+  {
+   "title": "École des ponts ParisTech"
+  },
+  {
+   "title": "École du Louvre"
+  },
+  {
+   "title": "École européenne de chimie, polymères et matériaux"
+  },
+  {
+   "title": "École française d'Athènes"
+  },
+  {
+   "title": "École française d'Extrême-Orient"
+  },
+  {
+   "title": "École française de Rome"
+  },
+  {
+   "title": "École nationale d'administration"
+  },
+  {
+   "title": "École nationale d'ingénieurs de Brest"
+  },
+  {
+   "title": "École nationale d'ingénieurs de Saint-Etienne"
+  },
+  {
+   "title": "École nationale de l'aviation civile"
+  },
+  {
+   "title": "École nationale des eaux et forêts"
+  },
+  {
+   "title": "École nationale des travaux publics de l'État"
+  },
+  {
+   "title": "École nationale supérieure d'informatique pour l'industrie et l'enterprise"
+  },
+  {
+   "title": "École nationale supérieure d'ingénieurs de Bretagne sud"
+  },
+  {
+   "title": "École nationale supérieure d'ingénieurs de Caen"
+  },
+  {
+   "title": "École nationale supérieure d'ingénieurs de Limoges"
+  },
+  {
+   "title": "École nationale supérieure d'ingénieurs de Poitiers"
+  },
+  {
+   "title": "École nationale supérieure d'ingénieurs de constructions aéronautiques"
+  },
+  {
+   "title": "École nationale supérieure d'électronique, d'électrotechnique, d'informatique, d'hydraulique, et de télécommunications"
+  },
+  {
+   "title": "École nationale supérieure d'électronique, informatique et radiocommunications de Bordeaux"
+  },
+  {
+   "title": "École nationale supérieure de chimie de Clermont-Ferrand"
+  },
+  {
+   "title": "École nationale supérieure de chimie de Lille"
+  },
+  {
+   "title": "École nationale supérieure de chimie de Rennes"
+  },
+  {
+   "title": "École nationale supérieure de l'aéronautique et de l'espace"
+  },
+  {
+   "title": "École nationale supérieure de mécanique et d'aérotechnique"
+  },
+  {
+   "title": "École nationale supérieure de physique et chimie de Bordeaux"
+  },
+  {
+   "title": "École nationale supérieure de techniques avancées de Bretagne"
+  },
+  {
+   "title": "École nationale supérieure des arts et industries textiles"
+  },
+  {
+   "title": "École nationale supérieure des ingénieurs en arts chimiques et technologiques"
+  },
+  {
+   "title": "École nationale supérieure des sciences de l'information et des bibliothèques"
+  },
+  {
+   "title": "École nationale supérieure des télécommunications"
+  },
+  {
+   "title": "École nationale supérieure maritime"
+  },
+  {
+   "title": "École nationale vétérinaire, agroalimentaire et de l'alimentation, Nantes-Atlantique"
+  },
+  {
+   "title": "École normale supérieure"
+  },
+  {
+   "title": "École normale supérieure (rue d'Ulm)"
+  },
+  {
+   "title": "École normale supérieure Paris-Saclay"
+  },
+  {
+   "title": "École normale supérieure de Lyon"
+  },
+  {
+   "title": "École normale supérieure de Rennes"
+  },
+  {
+   "title": "École pour l'informatique et les techniques avancées"
+  },
+  {
+   "title": "École pratique des hautes études"
+  },
+  {
+   "title": "École spéciale des travaux publics"
+  },
+  {
+   "title": "École spéciale militaire de Saint-Cyr"
+  },
+  {
+   "title": "École supérieure d'ingénieurs en génie électrique"
+  },
+  {
+   "title": "École supérieure d'ingénieurs en informatique et génie des télécommunications"
+  },
+  {
+   "title": "École supérieure d'optique"
+  },
+  {
+   "title": "École supérieure de biotechnologie Strasbourg"
+  },
+  {
+   "title": "École supérieure de chimie physique électronique de Lyon"
+  }
+ ],
+ "page_id": 319884
+}
