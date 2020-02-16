@@ -56,7 +56,7 @@ func NewDGraph() (*DGraph, error) {
 			pageID: int
 		}
 
-		title: string @index(hash) @lang .
+		title: string @index(hash, trigram) @lang .
 		description: string @index(term) @lang .
 		last_crawled: dateTime @index(hour) .
 		missing: bool @index(bool) .
@@ -345,6 +345,10 @@ func (dg *DGraph) ShortestPath(from string, to string) ([]Article, error) {
 		path(func: uid(path)) {
 			uid,
 			title,
+			linked_articles {
+				uid,
+				title
+			}
 		}
 	}
 
