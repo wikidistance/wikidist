@@ -1,21 +1,19 @@
 ![](https://github.com/wikidistance/wikidist/workflows/Test/badge.svg)
 
-# Wikidist : technical documentation
-
-## About this project
+# About this project
 
 **How many links do you need to click to go from one Wikipedia article to another?**
 Wikidist answers this question and tells you precisely on which links to click in order to achieve this.
 
 You can use it as a guessing game. Or just to satisfy your curiosity :-)
 
-## Architecture overview
+# Architecture overview
 
 Wikidist has four major components, presented in the following sections.
 
 ![Architecture overview](https://user-images.githubusercontent.com/8351433/74613849-aeac2580-5112-11ea-879a-cd3ed36edea9.png)
 
-### Graph database
+## Graph database
 
 The database stores a graph in which each vertex is a page from Wikipedia, and each (oriented) edge is a link from one page to another.
 
@@ -25,7 +23,7 @@ For the project, we chose [`dgraph`](https://dgraph.io/), a somewhat recent but 
 * `dgraph` is written in Go, and thus naturally has a [great Go client API](https://godoc.org/github.com/dgraph-io/dgo)
 * `dgraph`'s performance exceeds the project's requirements, even when run on a single node
 
-### Crawler
+## Crawler
 
 _Written in Go, code located in [`cmd/crawler`](cmd/crawler)._
 
@@ -37,7 +35,7 @@ The crawler uses a multi-worker architecture: a queue is filled with yet-to-visi
 
 We assume that Wikipedia is a strongly connected graph, meaning that we will reach every page starting from any page. This assumption may not be true, but is reasonable given that the users will most likely search for "popular" pages with many links.
 
-### API server
+## API server
 
 _Written in Go, code located in [`cmd/api`](cmd/api)._
 
@@ -45,7 +43,7 @@ The API server receives requests from the front-end, fetches the necessary infor
 
 It has three endpoints.
 
-#### **/search**
+### **/search**
 Usage:
 ```shell
 POST /search {"search": "<your_search>", "depth": <depth>}
@@ -121,15 +119,15 @@ The shortest endpoint is meant to be used to find the shortest path between two 
 
 It returns the titles and uids of all the interim articles along the route.
 
-### Front-end
+## Front-end
 
 _Code located in [`frontend`](frontend)._
 
 TODO: technologies used, technical walkthrough...
 
-## Installation
+# Installation
 
-### Requirements
+## Requirements
 
 To run this project, you will need to have the following applications installed:
 
@@ -140,7 +138,7 @@ To run this project, you will need to have the following applications installed:
 
 Make sure that ports 5080, 6080, 8000, 8080, 8085 and 9080 are not currently in use on your machine.
 
-### The easy way
+## The easy way
 
 The project is provided with a `docker-compose` file for an easy and fast installation. You can run the entire project minus the crawler by simply running:
 
@@ -158,9 +156,9 @@ In order to launch the crawler, see [here](#crawler).
 
 It is an easy way to test the project. However, if you really want to go deeper into the project, you can still install the different component by hand.
 
-### The long way
+## The long way
 
-#### [Dgraph](https://dgraph.io/)
+### [Dgraph](https://dgraph.io/)
 
 Use `docker-compose` to deploy `dgraph`:
 
@@ -175,7 +173,7 @@ This will launch the three containers used by `dgraph`:
 
 If for some reason you want to install it without using `docker-compose`, follow the instructions provided [here](https://docs.dgraph.io/deploy/).
 
-#### API
+### API
 
 The API server uses port 8081. To launch it:
 
@@ -185,9 +183,9 @@ go build
 ./api
 ```
 
-#### Front-end
+### Front-end
 
-##### Configuration
+#### Configuration
 
 To change API url in frontend you can edit `frontend/.env`
 
@@ -199,7 +197,7 @@ If you want to test locally, you can put the local API host adress and port (by 
 VUE_APP_API_URL="http://localhost:8081"
 ```
 
-##### Serving files
+#### Serving files
 
 For development, you can serve the frontend with:
 
@@ -209,7 +207,7 @@ yarn install
 yarn serve
 ```
 
-##### Making a production build
+#### Making a production build
 
 For production, you should build static files using:
 
@@ -217,7 +215,7 @@ For production, you should build static files using:
 yarn build
 ```
 
-#### Crawler
+### Crawler
 
 The crawler only needs to be executed once in order to fill the database.
 
@@ -239,7 +237,7 @@ For example:
 ./crawler fr "Alan Turing" 5
 ```
 
-## Monitoring
+# Monitoring
 
 The crawling performance is critical for this project considering the number of articles to fetch (for example, the French version of Wikipedia has upwards of 2 million articles). It was therefore essential to identify and fix bottlenecks to be able to crawl the whole graph in a reasonable amount of time.
 
@@ -247,9 +245,9 @@ We used Datadog to analyze metrics like queue length, articles fetched per secon
 
 ![monitoring](https://user-images.githubusercontent.com/8351433/74614060-e4eaa480-5114-11ea-9066-ce17ba4a953c.png)
 
-## Testing
+# Testing
 
-### Unit tests
+## Unit tests
 
 The _fetcher_ part of package _crawler_ is unit tested.
 
@@ -270,13 +268,13 @@ go test -coverprofile=coverage.out
 go tool cover -html=coverage.out
 ```
 
-### CI
+## CI
 
 After each `git push`, the CI (Github Actions) will run the tests and report back on the appropriate PR whether tests are passing or not.
 
 The actions executed by the CI are defined in [`.github/workflows/test.yml`](.github/workflows/test.yml).
 
-## Trello / Scrum
+# Trello / Scrum
 
 In this project, we used Github Pull Requests instead of Trello.
 Pull Requests are [available here](https://github.com/wikidistance/wikidist/pulls?utf8=%E2%9C%93&q=is%3Apr+).
