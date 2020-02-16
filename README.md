@@ -138,6 +138,9 @@ To run this project, you will need to have the following applications installed:
 
 Make sure that ports 5080, 6080, 8000, 8080, 8085 and 9080 are not currently in use on your machine.
 
+The front-end will be accessible on your local port 8085.
+The database console will be accessible on local port 8000.
+
 ## The easy way
 
 The project is provided with a `docker-compose` file for an easy and fast installation. You can run the entire project minus the crawler by simply running:
