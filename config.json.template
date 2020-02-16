@@ -1,4 +1,4 @@
 {
-  "dgraph-host": "dgraph-server",
+  "dgraph-host": "server",
   "dgraph-port": 9080
 }

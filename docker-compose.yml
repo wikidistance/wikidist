@@ -1,6 +1,6 @@
 version: "3.2"
 services:
-  dgraph-zero:
+  zero:
     image: dgraph/dgraph:latest
     volumes:
       - type: volume
@@ -14,7 +14,7 @@ services:
     restart: on-failure
     command: dgraph zero --my=zero:5080
 
-  dgraph-server:
+  server:
     image: dgraph/dgraph:latest
     volumes:
       - type: volume
@@ -28,7 +28,7 @@ services:
     restart: on-failure
     command: dgraph alpha --my=server:7080 --lru_mb=2048 --zero=zero:5080
 
-  dgraph-ratel:
+  ratel:
     image: dgraph/dgraph:latest
     volumes:
       - type: volume
@@ -45,6 +45,12 @@ services:
     build:
       context: .
       dockerfile: docker/api.Dockerfile
+    ports:
+      - 8081:8081
+    restart: on-failure
+    depends_on:
+      - server
+      - zero
 
   frontend:
     image: wikidist-frontend
