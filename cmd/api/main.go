@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"io/ioutil"
 	"os"
 
 	"github.com/wikidistance/wikidist/pkg/api"
@@ -19,14 +20,13 @@ func main() {
 	}
 
 	// Get config from file
-	file, err := os.Open(filename)
+	file, err := ioutil.ReadFile(filename)
 	if err != nil {
 		log.Fatal("Couldn't open config file")
 	}
 
-	decoder := json.NewDecoder(file)
 	var config db.Config
-	err = decoder.Decode(&config)
+	err = json.Unmarshal(file, &config)
 	if err != nil {
 		log.Fatal("Couldn't parse config file")
 	}

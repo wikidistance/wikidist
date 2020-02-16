@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -20,7 +21,7 @@ func main() {
 
 	log.Println(args)
 
-	if len(args) != 3 || len(args) != 4 {
+	if len(args) != 3 && len(args) != 4 {
 		log.Println("Usage: crawler <prefix> <startTitle> <nWorkers> <config>")
 		return
 	}
@@ -39,19 +40,22 @@ func main() {
 	}
 
 	// Get config from file
-	file, err := os.Open(filename)
+	file, err := ioutil.ReadFile(filename)
 	if err != nil {
 		log.Fatal("Couldn't open config file")
 	}
 
-	decoder := json.NewDecoder(file)
 	var config db.Config
-	err = decoder.Decode(&config)
+	err = json.Unmarshal(file, &config)
 	if err != nil {
 		log.Fatal("Couldn't parse config file")
 	}
 
-	client, _ := db.NewDGraph(config)
+	client, err := db.NewDGraph(config)
+	if err != nil {
+		log.Fatal("Couldn't connect to DGraph")
+	}
+
 	c := crawler.NewCrawler(nWorkers, args[0], args[1], client)
 
 	go func() {
