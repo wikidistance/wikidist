@@ -1,0 +1,4 @@
+{
+  "dgraph-host": "localhost",
+  "dgraph-port": 9080
+}
