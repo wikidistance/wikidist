@@ -2,6 +2,7 @@ package crawler
 
 import (
 	"log"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -118,6 +119,12 @@ func (c *Crawler) addRegisterer() {
 	}
 }
 
+type httpGet struct{}
+
+func (hg httpGet) Get(url string) (*http.Response, error) {
+	return http.Get(url)
+}
+
 func (c *Crawler) addWorker() {
 	for {
 		title := <-c.queue
@@ -134,7 +141,7 @@ func (c *Crawler) addWorker() {
 
 		<-c.canMakeRequest
 
-		article, err := CrawlArticle(title, c.prefix)
+		article, err := CrawlArticle(title, c.prefix, httpGet{})
 
 		if err != nil {
 			log.Println(err)
