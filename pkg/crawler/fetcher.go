@@ -13,8 +13,12 @@ import (
 	"github.com/wikidistance/wikidist/pkg/metrics"
 )
 
+type httpGetter interface {
+	Get(url string) (*http.Response, error)
+}
+
 // CrawlArticle : Crawls an article given its title
-func CrawlArticle(title string, prefix string) (db.Article, error) {
+func CrawlArticle(title string, prefix string, hg httpGetter) (db.Article, error) {
 	baseURL := "https://" + prefix + ".wikipedia.org/w/api.php"
 
 	query := url.Values{}
@@ -25,8 +29,7 @@ func CrawlArticle(title string, prefix string) (db.Article, error) {
 	query.Add("plnamespace", "0")
 	query.Add("titles", title)
 
-	// TODO: Pagination logic
-	resp, err := http.Get(baseURL + "?" + query.Encode())
+	resp, err := hg.Get(baseURL + "?" + query.Encode())
 	if err != nil {
 		log.Printf("Request failed for article %s: %w", title, err)
 		metrics.Statsd.Count("wikidist.requests", 1, []string{"state:hard_failure"}, 1)
@@ -36,7 +39,7 @@ func CrawlArticle(title string, prefix string) (db.Article, error) {
 	metrics.Statsd.Count("wikidist.requests", 1, []string{"state:" + strconv.FormatInt(int64(resp.StatusCode), 10)}, 1)
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		log.Println("Request failed for article", title, ", status", resp.StatusCode)
-		return db.Article{}, fmt.Errorf("Rate limited")
+		return db.Article{}, fmt.Errorf("received non-2XX HTTP status code (possibly rate limited?)")
 	}
 
 	body, _ := ioutil.ReadAll(resp.Body)
