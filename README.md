@@ -124,6 +124,12 @@ It returns the titles and uids of all the interim articles along the route.
 _Code located in [`frontend`](frontend)._
 
 The front-end is implemented with the Vue.js framework. Graphs are rendered using d3.js.
+It also uses Typescript that brings typing to javascript.
+
+The codebase is quite simple, business logic is located in `src/services/wikidist.service.ts` while rendering and ui reactions are managed by components.
+The `src/types/articles.ts` contains type definitions.
+
+Eslint and prettier run alongside Vue to ensure good code formatting and quality of presentation.
 
 # Installation
 
