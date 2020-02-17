@@ -1,11 +1,15 @@
 ![](https://github.com/wikidistance/wikidist/workflows/Test/badge.svg)
 
+**Demo :** https://wikidist.rpelliard.com
+
 # About this project
 
 **How many links do you need to click to go from one Wikipedia article to another?**
 Wikidist answers this question and tells you precisely on which links to click in order to achieve this.
 
 You can use it as a guessing game. Or just to satisfy your curiosity :-)
+
+![example](https://user-images.githubusercontent.com/8351433/74616046-e7a1c580-5125-11ea-8cea-6a15cf84d035.png)
 
 # Architecture overview
 
