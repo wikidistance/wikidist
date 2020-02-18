@@ -200,19 +200,17 @@ go build
 
 #### Configuration
 
-To change API url in frontend you can edit `frontend/.env`
+By default, the front-end tries to contact a locally run API server (`localhost:8081`).
 
-By default the address is set to the VM hosted by CentraleSupélec, which can only be accessed from inside the CS network.
-
-If you want to test locally, you can put the local API host adress and port (by default: `localhost:8081`)
+If you want your local front-end to contact a remote API server (with an already running and filled `dgraph` database), edit `frontend/.env` to:
 
 ``` js
-VUE_APP_API_URL="http://localhost:8081"
+VUE_APP_API_URL="https://wikidist.rpelliard.com/api"
 ```
 
 #### Serving files
 
-For development, you can serve the frontend with:
+For development, you can serve the front-end with:
 
 ```
 cd frontend
